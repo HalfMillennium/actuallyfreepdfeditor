@@ -43,6 +43,20 @@ def app_icon():
     return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="512" height="512"><defs>{GRAD}</defs><rect width="96" height="96" rx="22" fill="url(#g)"/><g transform="translate(48 48) scale(.82) translate(-48 -48)">{inner}</g></svg>'''
 
 # ---------- WORDMARK ----------
+# Vertical placement of the mark in the lockup.
+#
+# The type's ink extent runs y 18.70 .. 56.16 (ascenders to descenders), so
+# its optical centre is 37.43. The mark is 40 tall and its artwork starts at
+# y=10 in the 96 box, which the .5 scale puts 5 units below the translate
+# origin:
+#
+#     translate_y = (37.43 - 40/2) - 5 = 12.43
+#
+# The original 14 sat the mark level with the ascenders but 2.84 units below
+# the descenders, which read as the icon hanging low. 12.43 splits the
+# overhang evenly, 1.27 above and below.
+MARK_DY = 12.43
+
 def wordmark(dark=True, with_mark=True, stacked=False):
     ink = INK if dark else "#fff"
     size=40
@@ -53,7 +67,7 @@ def wordmark(dark=True, with_mark=True, stacked=False):
     W = int(x3+4)
     m = ""
     if with_mark:
-        m = f'<g transform="translate(0 14) scale(.5)">{mark()[mark().index("<path"):mark().rindex("</svg>")]}</g>'
+        m = f'<g transform="translate(0 {MARK_DY}) scale(.5)">{mark()[mark().index("<path"):mark().rindex("</svg>")]}</g>'
     return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} 64" width="{W}" height="64"><defs>{GRAD}</defs>{m}<path d="{p1}" fill="{ink}"/><path d="{p2}" fill="url(#g)"/><path d="{p3}" fill="{ink}"/></svg>'''
 
 def wordmark_mono(color=INK):
@@ -64,7 +78,7 @@ def wordmark_mono(color=INK):
     W=int(x3+4)
     mk = mark(fill=color, cursor=("#fff" if color==INK else INK))
     mk = mk[mk.index("<path"):mk.rindex("</svg>")]
-    return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} 64" width="{W}" height="64"><g transform="translate(0 14) scale(.5)">{mk}</g><path d="{p1}" fill="{color}"/><path d="{p2}" fill="{color}"/><path d="{p3}" fill="{color}"/></svg>'''
+    return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} 64" width="{W}" height="64"><g transform="translate(0 {MARK_DY}) scale(.5)">{mk}</g><path d="{p1}" fill="{color}"/><path d="{p2}" fill="{color}"/><path d="{p3}" fill="{color}"/></svg>'''
 
 files = {
  "mark-gradient.svg": mark(),
