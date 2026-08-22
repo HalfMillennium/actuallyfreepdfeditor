@@ -81,6 +81,23 @@ or pressing **Close document**, removes it immediately.
 [pdf-lib](https://pdf-lib.js.org) ·
 [signature_pad](https://github.com/szimek/signature_pad)
 
-The Untitled UI brand ramp is re-anchored on this project's palette — dark
-walnut `#582707`, rust brown `#972d07`, tomato `#ff4b3e`, amber flame `#ffb20f`
-and banana cream `#ffe548` — in `styles/theme.css`.
+The Untitled UI brand ramp is re-anchored on this project's palette in
+`styles/theme.css`.
+
+## Brand
+
+The logo pack lives in `public/brand/` — the folded-page mark with an I-beam
+cursor, in gradient, mono-ink and mono-white; the full lockup in ink, white,
+mono and type-only; and the rounded app icon. The wordmark's type is outlined
+(Inter Display SemiBold, with "free" in Bold), so nothing depends on a webfont.
+`brand/build.py` is the generator that produced the pack, and
+`brand/preview-sheet.png` is the reference sheet.
+
+Brand colours: vermilion `#E8431C`, orange `#F07A1D`, amber `#F5B32B`, ink
+`#17130F`.
+
+One deliberate divergence: gradient-filled *text* in the product stops at
+`#ED7022` rather than running all the way to amber. The full ramp reaches
+1.85:1 against white, which is fine for a logotype — WCAG exempts them — but
+the landing headline is a sentence people have to read, and ending early keeps
+every letter at or above 3:1 for large text.

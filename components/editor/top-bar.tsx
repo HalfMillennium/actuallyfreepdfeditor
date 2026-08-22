@@ -81,7 +81,7 @@ export function TopBar({ onToggleSidebar, isSidebarOpen, onFitWidth }: Props) {
                     className="lg:hidden"
                 />
 
-                <Wordmark className="hidden shrink-0 sm:flex" />
+                <Wordmark className="hidden shrink-0 sm:block" />
 
                 <div className="min-w-0 flex-1 sm:px-2">
                     <p className="truncate text-sm font-semibold text-primary" title={doc.fileName}>

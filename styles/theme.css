@@ -147,9 +147,22 @@
     /* Signature gradients built from the full palette. */
     --gradient-warm: linear-gradient(135deg, rgb(88 39 7), rgb(151 45 7), rgb(255 75 62), rgb(255 178 15), rgb(255 229 72));
     --gradient-warm-soft: linear-gradient(135deg, rgb(255 75 62), rgb(255 178 15), rgb(255 229 72));
-    /* Stops short of banana-cream: gradient-filled text needs to stay legible
-       against a white page, and the top of the palette does not. */
-    --gradient-warm-text: linear-gradient(100deg, rgb(151 45 7), rgb(255 75 62) 55%, rgb(230 150 8));
+    /* The brand gradient, exactly as the logo pack defines it: vermilion ->
+       orange -> amber (#E8431C, #F07A1D, #F5B32B). Gradient-filled text in the
+       product uses these same stops so the wordmark and the landing headline
+       cannot drift apart. */
+    --color-brand-vermilion: rgb(232 67 28);
+    --color-brand-orange: rgb(240 122 29);
+    --color-brand-amber: rgb(245 179 43);
+    --color-brand-ink: rgb(23 19 15);
+
+    --gradient-brand: linear-gradient(135deg, rgb(232 67 28), rgb(240 122 29) 55%, rgb(245 179 43));
+
+    /* Same hues, stopped early. The full brand ramp reaches 1.85:1 against
+       white by the time it hits amber -- fine for the logotype, which WCAG
+       exempts, but the landing headline is a sentence people have to read.
+       Ending at #ED7022 keeps every letter at or above 3:1 for large text. */
+    --gradient-warm-text: linear-gradient(100deg, rgb(232 67 28), rgb(237 112 34));
 
     /* LIGHT MODE VARIABLES */
 

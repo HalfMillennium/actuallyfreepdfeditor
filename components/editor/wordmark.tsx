@@ -1,31 +1,28 @@
 import { cx } from "@/utils/cx";
 
 /**
- * The app's mark: a sheet of paper with a corner turned, filled with the
- * palette gradient.
+ * The brand lockup: the folded-page mark with an I-beam cursor, followed by
+ * "actually / free / pdfeditor" with the middle word in the brand gradient.
+ *
+ * Served from `public/brand/` rather than inlined. The wordmark's type is
+ * outlined (Inter Display SemiBold, with the "free" in Bold), which is exact
+ * but runs to ~17 kB of path data — worth a cached request, not worth carrying
+ * in every JS bundle. `brand/build.py` is the generator that produced it.
+ *
+ * `wordmark-white.svg` is the variant for dark backgrounds, and
+ * `mark-gradient.svg` the glyph on its own; both ship alongside this one.
  */
-export function Wordmark({ className, showText = true }: { className?: string; showText?: boolean }) {
+export function Wordmark({ className }: { className?: string }) {
     return (
-        <span className={cx("flex items-center gap-2", className)}>
-            <svg viewBox="0 0 32 32" className="size-7 shrink-0" aria-hidden="true">
-                <defs>
-                    <linearGradient id="afpe-mark" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0%" stopColor="#ffe548" />
-                        <stop offset="35%" stopColor="#ffb20f" />
-                        <stop offset="70%" stopColor="#ff4b3e" />
-                        <stop offset="100%" stopColor="#972d07" />
-                    </linearGradient>
-                </defs>
-                <path d="M6 3.5A2.5 2.5 0 0 1 8.5 1h10L27 9.5V28.5A2.5 2.5 0 0 1 24.5 31h-16A2.5 2.5 0 0 1 6 28.5Z" fill="url(#afpe-mark)" />
-                <path d="M18.5 1 27 9.5h-6a2.5 2.5 0 0 1-2.5-2.5Z" fill="#582707" fillOpacity="0.35" />
-                <path d="M11 19.5h11M11 24h7" stroke="#582707" strokeOpacity="0.55" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-
-            {showText && (
-                <span className="text-sm font-semibold tracking-tight text-primary">
-                    actually<span className="text-gradient-warm">free</span>pdfeditor
-                </span>
-            )}
-        </span>
+        // eslint-disable-next-line @next/next/no-img-element -- a static, pre-optimised SVG; next/image adds nothing here.
+        <img
+            src="/brand/wordmark-ink.svg"
+            alt="actuallyfreepdfeditor"
+            // Intrinsic size comes from the artwork's viewBox, so the box is
+            // reserved before the file lands and the header does not jump.
+            width={441}
+            height={64}
+            className={cx("h-7 w-auto", className)}
+        />
     );
 }

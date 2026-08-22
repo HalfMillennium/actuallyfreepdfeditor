@@ -31,7 +31,11 @@ export function PageSidebar({ activePageId, onJumpToPage }: Props) {
                 <span className="text-xs text-quaternary tabular-nums">{doc.pages.length}</span>
             </div>
 
-            <ol className="flex-1 space-y-3 overflow-y-auto px-3 pb-6">
+            {/* pt-1 is load-bearing: the active thumbnail is marked with a
+                ring, which is painted outside the element's box, and without
+                a little headroom the scroll container clips the top of the
+                first one. */}
+            <ol className="flex-1 space-y-3 overflow-y-auto px-3 pt-1 pb-6">
                 {doc.pages.map((page, index) => (
                     <li key={page.id}>
                         <PageThumbnail

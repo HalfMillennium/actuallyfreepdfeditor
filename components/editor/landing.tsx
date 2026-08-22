@@ -48,7 +48,7 @@ export function Landing() {
             />
 
             <div className="relative mx-auto flex max-w-4xl flex-col items-center px-4 py-14 sm:px-6 sm:py-20">
-                <Wordmark className="mb-10" />
+                <Wordmark className="mb-10 h-9 sm:h-10" />
 
                 <h1 className="max-w-2xl text-center text-display-sm font-semibold tracking-tight text-balance text-primary sm:text-display-md">
                     A PDF editor that is <span className="text-gradient-warm">actually</span> free
