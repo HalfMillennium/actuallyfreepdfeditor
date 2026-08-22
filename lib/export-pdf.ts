@@ -1,6 +1,7 @@
 import {
     LineCapStyle,
     PDFDocument,
+    type StandardFonts,
     type PDFFont,
     type PDFPage,
     concatTransformationMatrix,
@@ -16,7 +17,15 @@ import {
     stroke,
 } from "pdf-lib";
 
-import { LINE_HEIGHT_RATIO, baselineOffset, standardFontFor } from "./fonts";
+import { LINE_HEIGHT_RATIO, type StandardFontName, baselineOffset, standardFontFor } from "./fonts";
+
+// lib/fonts.ts spells the standard-14 font names out as string literals so the
+// toolbar can import it without dragging pdf-lib into the initial bundle. This
+// is where that shortcut is checked: `${StandardFonts}` is the union of the
+// enum's string values, so the line stops compiling if the two ever drift.
+type FontNamesMatchPdfLib = StandardFontName extends `${StandardFonts}` ? true : never;
+const _fontNamesAreValid: FontNamesMatchPdfLib = true;
+void _fontNamesAreValid;
 import { hexToRgb01 } from "./geometry";
 import type { Annotation, EditorDocument, FontId, Rotation, SourcePageSize } from "./types";
 import { displaySize, totalRotation } from "./types";
@@ -63,7 +72,7 @@ class FontCache {
     constructor(private pdf: PDFDocument) {}
 
     get(fontId: FontId, bold: boolean, italic: boolean): Promise<PDFFont> {
-        const name = standardFontFor(fontId, bold, italic);
+        const name = standardFontFor(fontId, bold, italic) as StandardFonts;
         let entry = this.cache.get(name);
         if (!entry) {
             entry = this.pdf.embedFont(name);

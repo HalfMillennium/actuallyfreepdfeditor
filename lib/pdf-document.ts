@@ -1,18 +1,30 @@
 "use client";
 
-import * as pdfjs from "pdfjs-dist";
 import type { PDFDocumentProxy, PDFPageProxy, RenderTask } from "pdfjs-dist";
-import { version as pdfjsVersion } from "pdfjs-dist";
 
 import type { Rotation, SourcePageSize } from "./types";
 
-let workerConfigured = false;
+type PdfJs = typeof import("pdfjs-dist");
 
-/** `scripts/copy-pdf-worker.mjs` puts this file in `public/` before dev/build. */
-function configureWorker(): void {
-    if (workerConfigured) return;
-    pdfjs.GlobalWorkerOptions.workerSrc = `/pdf.worker.${pdfjsVersion}.min.mjs`;
-    workerConfigured = true;
+let pdfjsPromise: Promise<PdfJs> | null = null;
+
+/**
+ * Loads pdf.js on demand, in the browser only.
+ *
+ * A static import would drag the whole library into the server render of the
+ * page (pdf.js warns about exactly this) and into the initial bundle, even
+ * though nothing can happen until a user picks a file.
+ *
+ * `scripts/copy-pdf-worker.mjs` puts the matching worker in `public/` before
+ * dev and build, and the version in the filename keeps a stale copy from being
+ * picked up after a dependency bump.
+ */
+function getPdfjs(): Promise<PdfJs> {
+    pdfjsPromise ??= import("pdfjs-dist").then((pdfjs) => {
+        pdfjs.GlobalWorkerOptions.workerSrc = `/pdf.worker.${pdfjs.version}.min.mjs`;
+        return pdfjs;
+    });
+    return pdfjsPromise;
 }
 
 export interface LoadedPdf {
@@ -35,7 +47,7 @@ export class PasswordProtectedError extends Error {
  * needed again at export time.
  */
 export async function loadPdf(bytes: ArrayBuffer): Promise<LoadedPdf> {
-    configureWorker();
+    const pdfjs = await getPdfjs();
 
     let proxy: PDFDocumentProxy;
     try {

@@ -1,3 +1,13 @@
+import { EditorProvider } from "@/components/editor/editor-context";
+import { EditorShell } from "@/components/editor/editor-shell";
+import { ToolSettingsProvider } from "@/components/editor/tool-settings";
+
 export default function Page() {
-    return <main className="p-10 text-display-sm font-semibold text-brand-secondary">actuallyfreepdfeditor</main>;
+    return (
+        <EditorProvider>
+            <ToolSettingsProvider>
+                <EditorShell />
+            </ToolSettingsProvider>
+        </EditorProvider>
+    );
 }

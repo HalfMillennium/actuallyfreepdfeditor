@@ -1,5 +1,3 @@
-import { StandardFonts } from "pdf-lib";
-
 import type { FontId } from "./types";
 
 /**
@@ -9,7 +7,27 @@ import type { FontId } from "./types";
  *
  * `ascent` / `descent` are the values published for the PDF standard-14 fonts,
  * expressed as a fraction of the em.
+ *
+ * The variant names are written out as plain strings rather than imported from
+ * pdf-lib's `StandardFonts`: this module is pulled in by the toolbar, and a
+ * value import would drag the whole of pdf-lib into the initial bundle for the
+ * sake of twelve string constants. `lib/export-pdf.ts` checks them against the
+ * real enum.
  */
+export type StandardFontName =
+    | "Helvetica"
+    | "Helvetica-Bold"
+    | "Helvetica-Oblique"
+    | "Helvetica-BoldOblique"
+    | "Times-Roman"
+    | "Times-Bold"
+    | "Times-Italic"
+    | "Times-BoldItalic"
+    | "Courier"
+    | "Courier-Bold"
+    | "Courier-Oblique"
+    | "Courier-BoldOblique";
+
 interface FontSpec {
     label: string;
     /** What the browser should render the live preview with. */
@@ -17,10 +35,10 @@ interface FontSpec {
     ascent: number;
     descent: number;
     variants: {
-        regular: StandardFonts;
-        bold: StandardFonts;
-        italic: StandardFonts;
-        boldItalic: StandardFonts;
+        regular: StandardFontName;
+        bold: StandardFontName;
+        italic: StandardFontName;
+        boldItalic: StandardFontName;
     };
 }
 
@@ -31,10 +49,10 @@ export const FONTS: Record<FontId, FontSpec> = {
         ascent: 0.718,
         descent: 0.207,
         variants: {
-            regular: StandardFonts.Helvetica,
-            bold: StandardFonts.HelveticaBold,
-            italic: StandardFonts.HelveticaOblique,
-            boldItalic: StandardFonts.HelveticaBoldOblique,
+            regular: "Helvetica",
+            bold: "Helvetica-Bold",
+            italic: "Helvetica-Oblique",
+            boldItalic: "Helvetica-BoldOblique",
         },
     },
     times: {
@@ -43,10 +61,10 @@ export const FONTS: Record<FontId, FontSpec> = {
         ascent: 0.683,
         descent: 0.217,
         variants: {
-            regular: StandardFonts.TimesRoman,
-            bold: StandardFonts.TimesRomanBold,
-            italic: StandardFonts.TimesRomanItalic,
-            boldItalic: StandardFonts.TimesRomanBoldItalic,
+            regular: "Times-Roman",
+            bold: "Times-Bold",
+            italic: "Times-Italic",
+            boldItalic: "Times-BoldItalic",
         },
     },
     courier: {
@@ -55,10 +73,10 @@ export const FONTS: Record<FontId, FontSpec> = {
         ascent: 0.629,
         descent: 0.157,
         variants: {
-            regular: StandardFonts.Courier,
-            bold: StandardFonts.CourierBold,
-            italic: StandardFonts.CourierOblique,
-            boldItalic: StandardFonts.CourierBoldOblique,
+            regular: "Courier",
+            bold: "Courier-Bold",
+            italic: "Courier-Oblique",
+            boldItalic: "Courier-BoldOblique",
         },
     },
 };
@@ -68,7 +86,7 @@ export const FONT_OPTIONS = (Object.keys(FONTS) as FontId[]).map((id) => ({ id, 
 /** Line box height as a multiple of the font size. Mirrored in CSS. */
 export const LINE_HEIGHT_RATIO = 1.25;
 
-export function standardFontFor(fontId: FontId, bold: boolean, italic: boolean): StandardFonts {
+export function standardFontFor(fontId: FontId, bold: boolean, italic: boolean): StandardFontName {
     const { variants } = FONTS[fontId];
     if (bold && italic) return variants.boldItalic;
     if (bold) return variants.bold;
