@@ -4,20 +4,24 @@
   "private": true,
   "description": "A genuinely free, fully in-browser PDF editor. No accounts, no uploads, no watermarks.",
   "scripts": {
-    "dev": "node scripts/copy-pdf-worker.mjs && next dev",
-    "build": "node scripts/copy-pdf-worker.mjs && next build",
+    "dev": "node scripts/copy-pdf-worker.mjs && node scripts/build-blog-index.mjs && next dev",
+    "build": "node scripts/copy-pdf-worker.mjs && node scripts/build-blog-index.mjs && next build",
     "start": "next start",
     "type-check": "tsc --noEmit",
     "verify:geometry": "node scripts/verify-export-geometry.mjs",
     "verify:e2e": "node scripts/verify-editor-e2e.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.120.0",
     "@internationalized/date": "^3.12.3",
+    "@octokit/rest": "^22.0.1",
     "@react-aria/utils": "^3.34.1",
     "@react-stately/utils": "^3.12.1",
     "@react-types/shared": "^3.36.1",
     "@untitledui/file-icons": "^0.0.9",
     "@untitledui/icons": "^0.0.22",
+    "gray-matter": "^4.0.3",
+    "marked": "^18.0.10",
     "motion": "^12.42.2",
     "next": "^15.5.4",
     "next-themes": "^0.4.6",
@@ -29,7 +33,8 @@
     "react-dom": "^19.1.0",
     "signature_pad": "^5.0.4",
     "sonner": "^2.0.7",
-    "tailwind-merge": "^3.6.0"
+    "tailwind-merge": "^3.6.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.13",

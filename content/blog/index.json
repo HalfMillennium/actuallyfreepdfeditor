@@ -1,0 +1,26 @@
+[
+  {
+    "slug": "how-to-black-out-information-in-a-pdf",
+    "title": "How to Black Out Information in a PDF (and What Redaction Really Means)",
+    "dek": "Drawing a black box over an account number is not the same as removing it. Here is the difference, and how to make sure the number is actually gone.",
+    "date": "2026-08-20",
+    "tags": [
+      "redaction",
+      "privacy",
+      "security"
+    ],
+    "taskIntent": "redaction"
+  },
+  {
+    "slug": "how-to-sign-a-pdf-on-your-phone-without-an-app",
+    "title": "How to Sign a PDF on Your Phone Without an App",
+    "dek": "Your phone can already do this. Here is the fastest route on iPhone and Android, and the one case where a photo of your signature beats drawing it.",
+    "date": "2026-08-18",
+    "tags": [
+      "signing",
+      "mobile",
+      "signatures"
+    ],
+    "taskIntent": "signing"
+  }
+]

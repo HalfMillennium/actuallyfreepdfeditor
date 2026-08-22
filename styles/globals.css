@@ -132,3 +132,127 @@ input[type="search"]::-webkit-search-cancel-button {
     user-select: none !important;
     cursor: grabbing !important;
 }
+
+/* ---------------------------------------------------------------------------
+   Blog prose
+   Scoped rather than global so the editor chrome is never affected. Written by
+   hand instead of pulling in @tailwindcss/typography for one page type.
+   --------------------------------------------------------------------------- */
+
+.afpe-prose {
+    color: var(--color-text-secondary);
+    font-size: 1.0625rem;
+    line-height: 1.75;
+}
+
+.afpe-prose > * + * {
+    margin-top: 1.25em;
+}
+
+.afpe-prose h2,
+.afpe-prose h3 {
+    margin-top: 2.25em;
+    margin-bottom: -0.35em;
+    scroll-margin-top: 5rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--color-text-primary);
+}
+
+.afpe-prose h2 {
+    font-size: 1.3125rem;
+    line-height: 1.4;
+}
+
+.afpe-prose h3 {
+    font-size: 1.125rem;
+    line-height: 1.45;
+}
+
+.afpe-prose strong {
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.afpe-prose a {
+    color: var(--color-text-brand-secondary);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--color-text-brand-secondary) 35%, transparent);
+    text-underline-offset: 3px;
+    transition: text-decoration-color 0.12s ease;
+}
+
+.afpe-prose a:hover {
+    text-decoration-color: currentColor;
+}
+
+.afpe-prose ul,
+.afpe-prose ol {
+    padding-left: 1.35em;
+}
+
+.afpe-prose ul {
+    list-style: disc;
+}
+
+.afpe-prose ol {
+    list-style: decimal;
+}
+
+.afpe-prose li + li {
+    margin-top: 0.4em;
+}
+
+.afpe-prose li::marker {
+    color: var(--color-fg-quaternary);
+}
+
+.afpe-prose blockquote {
+    border-left: 3px solid var(--color-border-brand);
+    padding-left: 1.1em;
+    color: var(--color-text-tertiary);
+}
+
+.afpe-prose code {
+    border-radius: 0.3rem;
+    background-color: var(--color-bg-secondary);
+    padding: 0.15em 0.4em;
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+}
+
+.afpe-prose pre {
+    overflow-x: auto;
+    border-radius: 0.75rem;
+    background-color: var(--color-bg-secondary);
+    padding: 1em 1.15em;
+}
+
+.afpe-prose pre code {
+    background: none;
+    padding: 0;
+}
+
+.afpe-prose hr {
+    border-color: var(--color-border-secondary);
+}
+
+.afpe-prose table {
+    display: block;
+    overflow-x: auto;
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+}
+
+.afpe-prose th,
+.afpe-prose td {
+    border-bottom: 1px solid var(--color-border-secondary);
+    padding: 0.6em 0.8em;
+    text-align: left;
+}
+
+.afpe-prose th {
+    font-weight: 600;
+    color: var(--color-text-primary);
+}

@@ -8,7 +8,7 @@ import { displaySize } from "@/lib/types";
 import { cx } from "@/utils/cx";
 
 import { useEditor } from "./editor-context";
-import { Landing } from "./landing";
+import { type GuideLink, Landing } from "./landing";
 import { PageSidebar } from "./page-sidebar";
 import { PageStack } from "./page-stack";
 import { type SignatureResult, SignatureModal } from "./signature-modal";
@@ -18,7 +18,7 @@ import { Toolbar } from "./toolbar";
 /** Longest edge a placed signature or image gets, in points. */
 const PLACED_MAX_EDGE = 180;
 
-export function EditorShell() {
+export function EditorShell({ latestGuides }: { latestGuides?: GuideLink[] }) {
     const { state, dispatch, savedSignatures, rememberSignature, forgetSignature } = useEditor();
     const [activePageId, setActivePageId] = useState<string | null>(null);
     const [isSignatureOpen, setIsSignatureOpen] = useState(false);
@@ -122,7 +122,7 @@ export function EditorShell() {
         [activePageId, dispatch, doc, scrollToPage, sourceSizes],
     );
 
-    if (!doc) return <Landing />;
+    if (!doc) return <Landing latestGuides={latestGuides} />;
 
     return (
         <div className="flex h-dvh flex-col overflow-hidden bg-secondary">

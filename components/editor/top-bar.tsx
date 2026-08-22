@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import Link from "next/link";
+
 import { Download01, FlipBackward, FlipForward, Menu02, XClose, ZoomIn, ZoomOut } from "@untitledui/icons";
 
 import { Button } from "@/components/base/buttons/button";
@@ -81,7 +83,19 @@ export function TopBar({ onToggleSidebar, isSidebarOpen, onFitWidth }: Props) {
                     className="lg:hidden"
                 />
 
-                <Wordmark className="hidden shrink-0 sm:block" />
+                <Link href="/" aria-label="actuallyfreepdfeditor home" className="hidden shrink-0 sm:block">
+                    <Wordmark />
+                </Link>
+
+                {/* The guides are reachable from inside the editor too, not just
+                    from the landing page — this is where people are when they
+                    hit the question the guides answer. */}
+                <Link
+                    href="/blog"
+                    className="hidden shrink-0 rounded-lg px-2 py-1 text-sm font-semibold text-tertiary transition hover:bg-secondary hover:text-secondary lg:block"
+                >
+                    Guides
+                </Link>
 
                 <div className="min-w-0 flex-1 sm:px-2">
                     <p className="truncate text-sm font-semibold text-primary" title={doc.fileName}>

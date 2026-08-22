@@ -2,6 +2,8 @@
 
 import { type DragEvent, useRef, useState } from "react";
 
+import Link from "next/link";
+
 import { AlertCircle, Brush01, CoinsStacked01, Eye, FileX02, PenTool02, Type01, UploadCloud01, WifiOff } from "@untitledui/icons";
 
 import { Button } from "@/components/base/buttons/button";
@@ -24,7 +26,13 @@ const PROMISES = [
     { icon: Eye, title: "No account, no tracking", body: "Nothing to sign up for. Your work is kept in this browser for a day, then dropped." },
 ];
 
-export function Landing() {
+export interface GuideLink {
+    slug: string;
+    title: string;
+    dek: string;
+}
+
+export function Landing({ latestGuides = [] }: { latestGuides?: GuideLink[] }) {
     const { openFile, status, error } = useEditor();
     const [isDragging, setIsDragging] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -48,7 +56,15 @@ export function Landing() {
             />
 
             <div className="relative mx-auto flex max-w-4xl flex-col items-center px-4 py-14 sm:px-6 sm:py-20">
-                <Wordmark className="mb-10 h-9 sm:h-10" />
+                <nav className="mb-10 flex w-full items-center justify-between gap-4">
+                    <Wordmark className="h-8 sm:h-9" />
+                    <Link
+                        href="/blog"
+                        className="rounded-lg px-3 py-1.5 text-sm font-semibold text-tertiary transition hover:bg-secondary hover:text-secondary"
+                    >
+                        Guides
+                    </Link>
+                </nav>
 
                 <h1 className="max-w-2xl text-center text-display-sm font-semibold tracking-tight text-balance text-primary sm:text-display-md">
                     A PDF editor that is <span className="text-gradient-warm">actually</span> free
@@ -153,6 +169,25 @@ export function Landing() {
                         ))}
                     </div>
                 </div>
+
+                <section className="mt-14 w-full border-t border-secondary pt-10">
+                    <div className="flex flex-wrap items-baseline justify-between gap-3">
+                        <h2 className="text-sm font-semibold tracking-wide text-quaternary uppercase">Guides</h2>
+                        <Link href="/blog" className="text-sm font-semibold text-brand-secondary transition hover:text-brand-secondary_hover">
+                            All guides
+                        </Link>
+                    </div>
+                    <ul className="mt-5 grid gap-5 sm:grid-cols-2">
+                        {latestGuides.map((guide) => (
+                            <li key={guide.slug}>
+                                <Link href={`/blog/${guide.slug}`} className="group flex flex-col gap-1">
+                                    <span className="font-semibold text-primary transition group-hover:text-brand-secondary">{guide.title}</span>
+                                    <span className="text-sm text-tertiary">{guide.dek}</span>
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
+                </section>
 
                 <footer className="mt-12 flex flex-col items-center gap-3 text-center">
                     <p className="text-xs text-quaternary">
