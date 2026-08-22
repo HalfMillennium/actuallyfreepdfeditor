@@ -36,7 +36,11 @@ npm run dev          # http://localhost:3000
 ```bash
 npm run type-check
 npm run verify:geometry   # export coordinate maths, checked against pdf.js
+npm run verify:blog       # pipeline gates, prechecks, RSS parsing, ISO weeks
 npm run verify:e2e        # full browser run-through (see script header for setup)
+
+# Author + reviewer on one brief, offline. Nothing is written or committed.
+ANTHROPIC_API_KEY=... npm run blog:draft -- --sample
 ```
 
 `verify:geometry` is the one worth knowing about. Annotations are stored in the
@@ -63,6 +67,59 @@ components/
 Text metrics live in exactly one place so the on-screen baseline and the
 exported baseline are computed from the same ascent and descent numbers rather
 than each guessing at line boxes.
+
+## The guides
+
+`/blog` is a static, statically-generated section: posts are markdown with
+frontmatter in `content/blog/posts/`, rendered with Article and BreadcrumbList
+JSON-LD, plus HowTo on procedural articles. Related posts and prev/next links
+are computed in code from tag overlap and date order, never generated, so a
+broken internal link is not a failure mode.
+
+Guides are reachable from the landing page, from inside the editor chrome, and
+from the blog's own header and footer.
+
+### The weekly pipeline
+
+`/api/cron/blog` runs on a Vercel cron once a week and can publish up to three
+posts. The design premise is one line long:
+
+> The trend selects the topic. The trend never appears in the title.
+
+A trending query tells you which group of people is about to be handed a PDF
+they need to do something to. The article addresses that document task, phrased
+as the evergreen query the person actually types. Every article has to pass the
+18-Month Test — still accurate and useful in eighteen months with no edits — or
+it is discarded.
+
+The stages, and what guards each one:
+
+| Stage | What happens | What keeps it honest |
+|---|---|---|
+| Signals | Trends RSS, News RSS, a seasonal calendar, an evergreen backlog | Feeds are optional by construction; the calendar and backlog are the floor |
+| Brief | One call, over-generates candidates | Must argue the 18-Month Test and name an honest limitation |
+| Author | One call per brief, structured output | Capability manifest in the prompt |
+| Precheck | Word count, capability set difference, CTA count and placement, banned phrases, slug collision, year-in-title, heading shape | Pure code. Free, objective, runs before any reviewer call |
+| Review | Independent call, fresh context | Receives the finished article and the ground truth. Not the brief, not the signal, not the author's reasoning — there is no parameter for them |
+| Gate | Publish or discard | Computed in code from the reviewer's scores, never read off a verdict field a model wrote |
+| Commit | One atomic commit, or none | PR mode by default |
+
+A failing draft is **discarded, never revised**. Revision loops are how a
+pipeline talks itself into publishing what the reviewer already rejected.
+Shipping two posts in a week is a fine outcome; shipping a bad third is not.
+
+Three independent layers stand between the blog and a claim the editor cannot
+back: the capability manifest in the author prompt, the set-difference precheck,
+and the reviewer's `CAPABILITY_CLAIM` blocker. `lib/blog/capabilities.ts` is
+written against the source and changes in the same commit as any feature.
+
+Run logs are committed to `content/blog/_runs/`, so git history is the audit
+trail — every week's decisions sit next to the posts they produced.
+`/blog/ops?k=$OPS_TOKEN` renders them as a table.
+
+Set it up with `.env.example`. Leave `AUTO_MERGE=false` for the first month:
+runs open a PR instead of committing, and reading a few of those is how you find
+out what your prompts actually do.
 
 ## Privacy
 

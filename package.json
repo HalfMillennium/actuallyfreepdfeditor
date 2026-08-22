@@ -9,7 +9,11 @@
     "start": "next start",
     "type-check": "tsc --noEmit",
     "verify:geometry": "node scripts/verify-export-geometry.mjs",
-    "verify:e2e": "node scripts/verify-editor-e2e.mjs"
+    "verify:e2e": "node scripts/verify-editor-e2e.mjs",
+    "verify:gates": "node scripts/verify-blog-gates.mjs",
+    "verify:parsers": "node scripts/verify-blog-parsers.mjs",
+    "verify:blog": "npm run verify:gates && npm run verify:parsers",
+    "blog:draft": "node scripts/blog-draft.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.120.0",
