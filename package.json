@@ -4,11 +4,11 @@
   "private": true,
   "description": "A genuinely free, fully in-browser PDF editor. No accounts, no uploads, no watermarks.",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "node scripts/copy-pdf-worker.mjs && next dev",
+    "build": "node scripts/copy-pdf-worker.mjs && next build",
     "start": "next start",
-    "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "verify:geometry": "node scripts/verify-export-geometry.mjs"
   },
   "dependencies": {
     "@internationalized/date": "^3.12.3",
