@@ -121,6 +121,27 @@ Set it up with `.env.example`. Leave `AUTO_MERGE=false` for the first month:
 runs open a PR instead of committing, and reading a few of those is how you find
 out what your prompts actually do.
 
+## Deploying
+
+The project is linked to Vercel and deploys on every push to the production
+branch. `vercel.json` registers the weekly cron.
+
+The cron endpoint and the ops dashboard both **fail closed**: with `CRON_SECRET`
+and `OPS_TOKEN` unset they refuse every request. That is the intended state for
+a fresh deployment — the site is fully functional and the pipeline is simply
+dormant, spending nothing, until you set:
+
+| Variable | Needed for |
+|---|---|
+| `ANTHROPIC_API_KEY` | the agents |
+| `GITHUB_TOKEN` | committing posts back (fine-grained PAT, `contents:write` + `pull-requests:write`, this repo only) |
+| `GITHUB_REPO` | `HalfMillennium/actuallyfreepdfeditor` |
+| `CRON_SECRET` | the weekly trigger — Vercel sends it as `Authorization: Bearer` |
+| `OPS_TOKEN` | `/blog/ops?k=…` |
+| `DIGEST_WEBHOOK_URL` | optional Slack/Discord digest |
+
+Leave `AUTO_MERGE=false` to start. See `.env.example` for the rest.
+
 ## Privacy
 
 The document never leaves your machine. To make a refresh non-destructive the
