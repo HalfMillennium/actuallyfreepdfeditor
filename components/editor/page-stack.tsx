@@ -7,7 +7,7 @@ import { RefreshCcw01, RefreshCw01, Trash01 } from "@untitledui/icons";
 import { ButtonUtility } from "@/components/base/buttons/button-utility";
 import { LINE_HEIGHT_RATIO } from "@/lib/fonts";
 import { createId } from "@/lib/geometry";
-import type { Annotation, DrawAnnotation, EditorPage, ShapeAnnotation, TextAnnotation, ToolId } from "@/lib/types";
+import type { Annotation, DrawAnnotation, EditorPage, ShapeAnnotation, TextAnnotation } from "@/lib/types";
 import { displaySize, totalRotation } from "@/lib/types";
 import { cx } from "@/utils/cx";
 
@@ -225,7 +225,7 @@ export function PageStack({ onRequestPageFocus }: Props) {
                                 />
                             ))}
 
-                            {draft?.pageId === page.id && <DraftPreview draft={draft} zoom={zoom} tool={tool} color={tool === "highlight" ? highlight.color : tool === "whiteout" ? whiteout.color : pen.color} opacity={tool === "highlight" ? highlight.opacity : whiteout.opacity} strokeWidth={pen.strokeWidth} />}
+                            {draft?.pageId === page.id && <DraftPreview draft={draft} zoom={zoom} color={tool === "highlight" ? highlight.color : tool === "whiteout" ? whiteout.color : pen.color} opacity={tool === "highlight" ? highlight.opacity : whiteout.opacity} strokeWidth={pen.strokeWidth} />}
                         </div>
                     </PageSheet>
                 );
@@ -328,14 +328,12 @@ function PageSheet({ page, index, total, width, height, children, onVisible }: S
 function DraftPreview({
     draft,
     zoom,
-    tool,
     color,
     opacity,
     strokeWidth,
 }: {
     draft: Draft;
     zoom: number;
-    tool: ToolId;
     color: string;
     opacity: number;
     strokeWidth: number;
@@ -350,7 +348,7 @@ function DraftPreview({
                     width: Math.abs(draft.x1 - draft.x0) * zoom,
                     height: Math.abs(draft.y1 - draft.y0) * zoom,
                     backgroundColor: color,
-                    opacity: tool === "highlight" ? opacity : opacity,
+                    opacity,
                 }}
             />
         );

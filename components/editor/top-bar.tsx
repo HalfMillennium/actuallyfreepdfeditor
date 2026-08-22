@@ -15,11 +15,12 @@ import { Wordmark } from "./wordmark";
 interface Props {
     onToggleSidebar: () => void;
     isSidebarOpen: boolean;
+    onFitWidth: () => void;
 }
 
 const ZOOM_STEPS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4];
 
-export function TopBar({ onToggleSidebar, isSidebarOpen }: Props) {
+export function TopBar({ onToggleSidebar, isSidebarOpen, onFitWidth }: Props) {
     const { state, dispatch, sourceBytes, closeDocument } = useEditor();
     const [isExporting, setIsExporting] = useState(false);
     const [exportError, setExportError] = useState<string | null>(null);
@@ -70,7 +71,7 @@ export function TopBar({ onToggleSidebar, isSidebarOpen }: Props) {
 
     return (
         <header className="flex flex-col border-b border-secondary bg-primary">
-            <div className="flex items-center gap-3 px-4 py-2.5">
+            <div className="flex items-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-4">
                 <ButtonUtility
                     size="sm"
                     color="tertiary"
@@ -82,11 +83,14 @@ export function TopBar({ onToggleSidebar, isSidebarOpen }: Props) {
 
                 <Wordmark className="hidden shrink-0 sm:flex" />
 
-                <div className="min-w-0 flex-1 px-2">
+                <div className="min-w-0 flex-1 sm:px-2">
                     <p className="truncate text-sm font-semibold text-primary" title={doc.fileName}>
                         {doc.fileName}
                     </p>
-                    <p className="text-xs text-tertiary">
+                    {/* Squeezed out on a phone: the filename needs the room more
+                        than the counts do, and letting this wrap triples the
+                        height of the whole bar. */}
+                    <p className="truncate text-xs text-tertiary max-sm:hidden">
                         {doc.pages.length} {doc.pages.length === 1 ? "page" : "pages"} · {doc.annotations.length}{" "}
                         {doc.annotations.length === 1 ? "edit" : "edits"}
                     </p>
@@ -111,13 +115,13 @@ export function TopBar({ onToggleSidebar, isSidebarOpen }: Props) {
                     />
                 </div>
 
-                <div className="flex items-center gap-0.5 rounded-lg bg-secondary p-0.5 max-sm:hidden">
+                <div className="flex items-center gap-0.5 rounded-lg bg-secondary p-0.5">
                     <ButtonUtility size="xs" color="tertiary" icon={ZoomOut} tooltip="Zoom out" isDisabled={zoom <= MIN_ZOOM} onClick={() => stepZoom(-1)} />
                     <button
                         type="button"
-                        onClick={() => dispatch({ type: "zoom/set", zoom: 1 })}
-                        title="Reset to 100%"
-                        className="w-14 cursor-pointer text-center text-xs font-semibold tabular-nums text-secondary"
+                        onClick={onFitWidth}
+                        title="Fit the page to the window"
+                        className="w-14 cursor-pointer text-center text-xs font-semibold tabular-nums text-secondary max-sm:hidden"
                     >
                         {Math.round(zoom * 100)}%
                     </button>

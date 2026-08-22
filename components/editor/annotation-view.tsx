@@ -50,7 +50,7 @@ export function AnnotationView({
     onDelete,
 }: Props) {
     const [isEditingText, setIsEditingText] = useState(autoEdit);
-    const gesture = useRef<{ handle: HandleId | "move"; startX: number; startY: number; box: Annotation } | null>(null);
+    const gesture = useRef<{ handle: HandleId | "move"; startX: number; startY: number; box: Annotation; checkpointed: boolean } | null>(null);
 
     const style: CSSProperties = {
         left: annotation.x * zoom,
@@ -66,11 +66,12 @@ export function AnnotationView({
             event.preventDefault();
 
             (event.target as HTMLElement).setPointerCapture(event.pointerId);
-            gesture.current = { handle, startX: event.clientX, startY: event.clientY, box: annotation };
+            gesture.current = { handle, startX: event.clientX, startY: event.clientY, box: annotation, checkpointed: false };
             document.body.classList.add("afpe-dragging");
 
             onSelect(annotation.id);
-            onCheckpoint();
+            // The undo checkpoint waits for actual movement (see below): simply
+            // clicking an annotation to select it should not spend an undo step.
         },
         [annotation, interactive, onSelect, onCheckpoint],
     );
@@ -84,6 +85,14 @@ export function AnnotationView({
             const dx = (event.clientX - active.startX) / zoom;
             const dy = (event.clientY - active.startY) / zoom;
             const { box } = active;
+
+            if (!active.checkpointed) {
+                // Ignore the pixel or two of drift a plain click produces, then
+                // record one checkpoint for the whole gesture.
+                if (Math.abs(dx) * zoom < 2 && Math.abs(dy) * zoom < 2) return;
+                active.checkpointed = true;
+                onCheckpoint();
+            }
 
             if (active.handle === "move") {
                 onChange(annotation.id, clampBoxToPage({ ...box, x: box.x + dx, y: box.y + dy }, pageWidth, pageHeight), true);
@@ -133,7 +142,7 @@ export function AnnotationView({
 
             onChange(annotation.id, patch, true);
         },
-        [annotation, onChange, pageHeight, pageWidth, zoom],
+        [annotation, onChange, onCheckpoint, pageHeight, pageWidth, zoom],
     );
 
     const endGesture = useCallback(
@@ -285,9 +294,11 @@ function AnnotationBody({ annotation, zoom, isEditing, onChange, onStopEditing }
                         points={annotation.points.map(([x, y]) => `${x},${y}`).join(" ")}
                         fill="none"
                         stroke={annotation.color}
-                        strokeWidth={annotation.strokeWidth / Math.max(annotation.width, 1)}
                         strokeLinecap="round"
                         strokeLinejoin="round"
+                        // The viewBox is a unit square stretched to the box, so
+                        // an ordinary stroke width would be scaled unevenly on
+                        // each axis. Pin it to CSS pixels instead.
                         vectorEffect="non-scaling-stroke"
                         style={{ strokeWidth: annotation.strokeWidth * zoom }}
                     />

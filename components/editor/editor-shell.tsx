@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { createId } from "@/lib/geometry";
 import type { ImageAnnotation } from "@/lib/types";
@@ -26,8 +26,60 @@ export function EditorShell() {
 
     const scrollRef = useRef<HTMLDivElement>(null);
     const imageInputRef = useRef<HTMLInputElement>(null);
+    const fittedDocId = useRef<string | null>(null);
 
-    const { doc, sourceSizes } = state;
+    const { doc, sourceSizes, zoom } = state;
+
+    /**
+     * Zoom level at which the widest page fits the viewport.
+     *
+     * Capped at 100%: on a wide monitor an A4 page would otherwise be blown up
+     * to nearly twice its natural size, which is not what "fit" should mean.
+     */
+    const widthFittingZoom = useCallback(() => {
+        const container = scrollRef.current;
+        if (!container || !doc) return null;
+
+        const widest = Math.max(...doc.pages.map((page) => displaySize(sourceSizes[page.sourceIndex], page.rotation).width));
+        if (!Number.isFinite(widest) || widest <= 0) return null;
+
+        // Leave room for the horizontal padding the page stack applies. A
+        // zero-width container means layout has not settled yet; skip rather
+        // than snapping to the minimum zoom.
+        const available = container.clientWidth - 48;
+        if (available <= 0) return null;
+
+        return Math.min(1, available / widest);
+    }, [doc, sourceSizes]);
+
+    const fitToWidth = useCallback(() => {
+        const fitted = widthFittingZoom();
+        if (fitted) dispatch({ type: "zoom/set", zoom: fitted });
+    }, [dispatch, widthFittingZoom]);
+
+    /**
+     * Never open a document wider than the window.
+     *
+     * This takes the *smaller* of the fitting zoom and whatever zoom the user
+     * last preferred, so a restored 75% is respected on a desktop but a phone
+     * still gets a page it can actually see.
+     */
+    useEffect(() => {
+        if (!doc || fittedDocId.current === doc.id) return;
+
+        const fitted = widthFittingZoom();
+        if (fitted === null) return;
+
+        fittedDocId.current = doc.id;
+        if (fitted < zoom) dispatch({ type: "zoom/set", zoom: fitted });
+    }, [doc, dispatch, widthFittingZoom, zoom]);
+
+    const scrollToPage = useCallback((pageId: string) => {
+        const container = scrollRef.current;
+        const element = container?.querySelector<HTMLElement>(`[data-page-id="${pageId}"]`);
+        element?.scrollIntoView({ behavior: "smooth", block: "start" });
+        setIsSidebarOpen(false);
+    }, []);
 
     /** Where a newly-placed stamp should land: the middle of the visible page. */
     const placeOnPage = useCallback(
@@ -67,22 +119,14 @@ export function EditorShell() {
 
             scrollToPage(page.id);
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- scrollToPage is defined below and stable
-        [activePageId, dispatch, doc, sourceSizes],
+        [activePageId, dispatch, doc, scrollToPage, sourceSizes],
     );
-
-    const scrollToPage = useCallback((pageId: string) => {
-        const container = scrollRef.current;
-        const element = container?.querySelector<HTMLElement>(`[data-page-id="${pageId}"]`);
-        element?.scrollIntoView({ behavior: "smooth", block: "start" });
-        setIsSidebarOpen(false);
-    }, []);
 
     if (!doc) return <Landing />;
 
     return (
         <div className="flex h-dvh flex-col overflow-hidden bg-secondary">
-            <TopBar isSidebarOpen={isSidebarOpen} onToggleSidebar={() => setIsSidebarOpen((open) => !open)} />
+            <TopBar isSidebarOpen={isSidebarOpen} onToggleSidebar={() => setIsSidebarOpen((open) => !open)} onFitWidth={fitToWidth} />
 
             <Toolbar onPickSignature={() => setIsSignatureOpen(true)} onPickImage={() => imageInputRef.current?.click()} />
 
