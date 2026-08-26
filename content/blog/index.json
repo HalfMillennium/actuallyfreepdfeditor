@@ -1,5 +1,53 @@
 [
   {
+    "slug": "how-to-fill-out-a-form-sent-as-a-photo",
+    "title": "How to Fill Out a Form Someone Sent as a Photo",
+    "dek": "A photo of a form is not a form. Here is the shortest route from a picture sitting in your messages to something you can type on and send back.",
+    "date": "2026-08-26",
+    "tags": [
+      "forms",
+      "scanning",
+      "mobile"
+    ],
+    "taskIntent": "file-handling"
+  },
+  {
+    "slug": "how-to-reorder-pages-in-a-scanned-document",
+    "title": "How to Reorder Pages in a Scanned Document",
+    "dek": "Sheet feeders collate badly and duplex scans come out interleaved. Here is how to put a scan back in order, and what stays wrong afterwards.",
+    "date": "2026-08-26",
+    "tags": [
+      "pages",
+      "scanning",
+      "troubleshooting"
+    ],
+    "taskIntent": "page-management"
+  },
+  {
+    "slug": "the-five-things-people-pay-acrobat-for",
+    "title": "The Five Things People Pay Acrobat For",
+    "dek": "Most PDF tasks have a free answer that works. Five of them genuinely do not. Here is which is which, so you know what a subscription actually buys.",
+    "date": "2026-08-26",
+    "tags": [
+      "comparison",
+      "tools",
+      "redaction"
+    ],
+    "taskIntent": "comparison"
+  },
+  {
+    "slug": "why-you-cannot-type-in-that-pdf-form",
+    "title": "Why You Can't Type in That PDF Form",
+    "dek": "There are three separate reasons a PDF refuses typed input, and each needs a different fix. Here is how to tell which one you have, in about a minute.",
+    "date": "2026-08-26",
+    "tags": [
+      "troubleshooting",
+      "forms",
+      "scanning"
+    ],
+    "taskIntent": "troubleshooting"
+  },
+  {
     "slug": "how-to-black-out-information-in-a-pdf",
     "title": "How to Black Out Information in a PDF (and What Redaction Really Means)",
     "dek": "Drawing a black box over an account number is not the same as removing it. Here is the difference, and how to make sure the number is actually gone.",
