@@ -1,5 +1,17 @@
 [
   {
+    "slug": "wet-signature-vs-electronic-signature",
+    "title": "Wet Signature vs Electronic Signature",
+    "dek": "A wet signature is ink on paper; an electronic signature is a mark attached to a digital file. The medium is the whole difference — and it does not tell you which one your form accepts.",
+    "date": "2026-09-14",
+    "tags": [
+      "signing",
+      "signatures",
+      "forms"
+    ],
+    "taskIntent": "signing"
+  },
+  {
     "slug": "how-to-fill-out-a-form-sent-as-a-photo",
     "title": "How to Fill Out a Form Someone Sent as a Photo",
     "dek": "A photo of a form is not a form. Here is the shortest route from a picture sitting in your messages to something you can type on and send back.",
