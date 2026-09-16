@@ -4,8 +4,8 @@
   "private": true,
   "description": "A genuinely free, fully in-browser PDF editor. No accounts, no uploads, no watermarks.",
   "scripts": {
-    "dev": "node scripts/copy-pdf-worker.mjs && node scripts/build-blog-index.mjs && next dev",
-    "build": "node scripts/copy-pdf-worker.mjs && node scripts/build-blog-index.mjs && next build",
+    "dev": "node scripts/copy-pdf-worker.mjs && node scripts/copy-ocr-assets.mjs && node scripts/build-blog-index.mjs && next dev",
+    "build": "node scripts/copy-pdf-worker.mjs && node scripts/copy-ocr-assets.mjs && node scripts/build-blog-index.mjs && next build",
     "start": "next start",
     "type-check": "tsc --noEmit",
     "verify:geometry": "node scripts/verify-export-geometry.mjs",
@@ -13,7 +13,8 @@
     "verify:gates": "node scripts/verify-blog-gates.mjs",
     "verify:parsers": "node scripts/verify-blog-parsers.mjs",
     "verify:blog": "npm run verify:gates && npm run verify:parsers",
-    "blog:draft": "node scripts/blog-draft.mjs"
+    "blog:draft": "node scripts/blog-draft.mjs",
+    "verify:extract": "node scripts/verify-extract.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.120.0",
@@ -39,6 +40,7 @@
     "signature_pad": "^5.0.4",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.6.0",
+    "tesseract.js": "^7.0.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
