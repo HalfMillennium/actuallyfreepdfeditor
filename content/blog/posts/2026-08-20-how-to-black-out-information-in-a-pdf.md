@@ -31,6 +31,8 @@ If you do not have redaction software, do not try to be clever with layers. Flat
 
 Printing to PDF rasterises the page — the text becomes pixels — and the pixels under a black box are simply black. The file gets larger and the remaining text stops being selectable or searchable, which is a genuine cost. For a document you are sending once, it is usually the right trade.
 
+The last step is the one people skip, and it is the only one that proves anything. Whatever produced the file, open it afterwards and try to select what you hid. Better still, search the document for the exact string. A tool that will not let you check its own output is a tool asking to be trusted on its word.
+
 #### When covering is fine
 
 Not every case needs deletion. If you are marking up a printout for yourself, hiding a name in a screenshot for a slide, or covering something in a document that will only ever be looked at, a box is fine and takes five seconds.
@@ -41,6 +43,6 @@ The test is who receives the file and what they could do with it. A colleague re
 
 Even a properly flattened page leaves the document's metadata untouched. The author name, the software that produced it, revision history in some files, and the original filename all travel with the PDF. A document that says nothing on the page can still say plenty in its properties. Check them before sending anything sensitive.
 
-actuallyfreepdfeditor.com has a white-out tool that paints an opaque block over a region, and the block is written into the exported file rather than kept as a separate annotation a reader could switch off. It covers rather than deletes, which is exactly why the flattening step above matters when the file is going somewhere you do not control.
+actuallyfreepdfeditor.com does both, and keeps them clearly apart. The editor's white-out paints an opaque block over a region, written into the exported file rather than left as an annotation a reader could switch off — but it covers, which is why the flattening step above exists. Its /extract page does the flattening for you: it finds email addresses, card numbers and national ID numbers, shows you every match, and removes only the ones you tick, rebuilding those pages so the text is not in the file any more. It then re-reads its own output and tells you what it found, which is the check from the workaround above, done automatically.
 
 If the document is genuinely sensitive — medical records, anything heading into a legal proceeding, anything covered by a disclosure obligation — use software built for redaction and verify the output afterwards. The flattening trick is sound, but "sound" and "defensible if it goes wrong" are not the same standard.

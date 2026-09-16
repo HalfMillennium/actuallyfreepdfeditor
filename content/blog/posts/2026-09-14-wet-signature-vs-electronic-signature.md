@@ -41,7 +41,7 @@ Then look at the result at full size. Check that the text sits against the right
 
 A browser editor adds visible layers and little else. It will not edit text already in the PDF, populate real form fields, read a scan, or produce a certificate-based signature, and it will not open a password-protected file.
 
-Covering is not redaction. A white-out block draws over the page; the content underneath remains in the file and can be recovered. Never use it where the hidden thing must genuinely be gone.
+Covering is not redaction. A white-out block draws over the page; the content underneath remains in the file and can be recovered. Where the hidden thing must genuinely be gone, use a tool that removes it and then check the output by trying to select what you hid.
 
 A visible electronic signature does not, on its own, settle legal effect, identity, or whether a witness was required. The form's wording and the issuing body are where those get answered.
 
@@ -49,4 +49,4 @@ A visible electronic signature does not, on its own, settle legal effect, identi
 
 If the form asks for a wet signature, the shortest route is still the obvious one: print the page, sign it in ink, and scan or photograph it back. Trying to satisfy a wet-signature instruction electronically because it is more convenient is how forms come back rejected. Keep the blank original and your completed copy as separate files while you are at it — you will be asked to redo something eventually.
 
-[actuallyfreepdfeditor.com](https://actuallyfreepdfeditor.com) opens a PDF in your own browser and lets you place text and a signature anywhere on the page, then download the finished file. Nothing is uploaded; the file is read and rewritten on your device. Its white-out covers rather than removes, and its signature is a mark on the page rather than a certificate-backed one.
+[actuallyfreepdfeditor.com](https://actuallyfreepdfeditor.com) opens a PDF in your own browser and lets you place text and a signature anywhere on the page, then download the finished file. Nothing is uploaded; the file is read and rewritten on your device. Its white-out covers rather than removes — removal lives on the separate /extract page — and its signature is a mark on the page rather than a certificate-backed one.

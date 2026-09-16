@@ -33,7 +33,7 @@ Put each answer down as its own short piece of text rather than one long block, 
 
 #### What it will not do
 
-The text you add sits on top of an image. It is not searchable, it cannot be pulled out as data, and the file will be larger than a real PDF of the same document because every page is a photograph rather than a set of instructions for drawing letters.
+The text you add sits on top of an image. The document itself is still a photograph, so nothing in it is searchable and the file will be larger than a real PDF of the same pages. OCR can read a scan like this and give you the words back as text — useful when you need to quote a clause or pull figures into a spreadsheet — but that produces a separate text file, not a searchable PDF. The form you send is still a picture.
 
 For a form a person reads, none of that matters. For anything that feeds a system — a claim processed automatically, a document entering a records system, a return that gets machine-read — expect it to bounce, and ask for the proper form rather than sending a picture and hoping.
 

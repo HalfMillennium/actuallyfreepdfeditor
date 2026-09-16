@@ -13,7 +13,7 @@ A scan comes out in the wrong order more often than it comes out right, particul
 
 #### Work from thumbnails
 
-Open the file and find the page thumbnails. Everything from here is done by eye: the document has no idea which page is which, and neither does the software. What you are looking at are images, and the only way to sequence them is to read them.
+Open the file and find the page thumbnails. Everything from here is done by eye: the file records no page order beyond the sequence it was scanned in, and nothing in it says which page is meant to come first. What you are looking at are images, and they have to be read to be sequenced — by you, or by OCR if the printed numbers are legible and there are enough pages to make that worth the detour.
 
 Make the thumbnails as large as the tool will allow. A page number in a footer at thumbnail size is often two pixels tall and easy to misread, and getting page eleven and page seventeen the wrong way round is the kind of mistake nobody notices until it matters.
 
@@ -45,4 +45,4 @@ Say so when you send it, if the order is not self-evident. One line — the page
 
 Do the reordering before you add anything else. Text, signatures and highlights are anchored to the page they sit on, so moving a page afterwards takes them with it. That is usually what you want and occasionally is not, and settling the order first removes the question entirely.
 
-[actuallyfreepdfeditor.com](https://actuallyfreepdfeditor.com) shows every page as a thumbnail down the side and lets you reorder, rotate and delete pages from there, then download the result. It works on the page images, so it cannot read a scan or renumber anything — the sequencing stays your call.
+[actuallyfreepdfeditor.com](https://actuallyfreepdfeditor.com) shows every page as a thumbnail down the side and lets you reorder, rotate and delete pages from there, then download the result. The editor works on the page images and will not renumber anything, so the sequencing stays your call. Its /extract page will run OCR over the scan and give you back each page's text, which on a long document is a faster way to find the printed numbers than squinting at thumbnails.
