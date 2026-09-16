@@ -19,6 +19,9 @@ export function SiteHeader({ className }: { className?: string }) {
                 </Link>
 
                 <nav className="flex items-center gap-1 text-sm font-semibold">
+                    <Link href="/extract" className="rounded-lg px-3 py-1.5 text-tertiary transition hover:bg-secondary hover:text-secondary max-sm:hidden">
+                        Extract
+                    </Link>
                     <Link href="/blog" className="rounded-lg px-3 py-1.5 text-tertiary transition hover:bg-secondary hover:text-secondary">
                         Guides
                     </Link>

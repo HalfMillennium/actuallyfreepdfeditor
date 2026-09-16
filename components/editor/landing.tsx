@@ -58,12 +58,20 @@ export function Landing({ latestGuides = [] }: { latestGuides?: GuideLink[] }) {
             <div className="relative mx-auto flex max-w-4xl flex-col items-center px-4 py-14 sm:px-6 sm:py-20">
                 <nav className="mb-10 flex w-full items-center justify-between gap-4">
                     <Wordmark className="h-8 sm:h-9" />
-                    <Link
-                        href="/blog"
-                        className="rounded-lg px-3 py-1.5 text-sm font-semibold text-tertiary transition hover:bg-secondary hover:text-secondary"
-                    >
-                        Guides
-                    </Link>
+                    <div className="flex items-center gap-1">
+                        <Link
+                            href="/extract"
+                            className="rounded-lg px-3 py-1.5 text-sm font-semibold text-tertiary transition hover:bg-secondary hover:text-secondary"
+                        >
+                            Extract
+                        </Link>
+                        <Link
+                            href="/blog"
+                            className="rounded-lg px-3 py-1.5 text-sm font-semibold text-tertiary transition hover:bg-secondary hover:text-secondary"
+                        >
+                            Guides
+                        </Link>
+                    </div>
                 </nav>
 
                 <h1 className="max-w-2xl text-center text-display-sm font-semibold tracking-tight text-balance text-primary sm:text-display-md">
@@ -169,6 +177,22 @@ export function Landing({ latestGuides = [] }: { latestGuides?: GuideLink[] }) {
                         ))}
                     </div>
                 </div>
+
+                <section className="mt-14 w-full rounded-2xl border border-secondary p-6 sm:p-8">
+                    <h2 className="text-sm font-semibold tracking-wide text-quaternary uppercase">Also here</h2>
+                    <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h3 className="text-lg font-semibold text-primary">Turn PDFs into data, locally</h3>
+                            <p className="mt-1 max-w-xl text-sm text-tertiary">
+                                Pull out text and tables as CSV, JSON or Markdown, run OCR on scanned pages in this browser, and find and truly remove the
+                                personal data hiding in a document.
+                            </p>
+                        </div>
+                        <Button href="/extract" size="lg" color="secondary" className="shrink-0">
+                            Open the extractor
+                        </Button>
+                    </div>
+                </section>
 
                 <section className="mt-14 w-full border-t border-secondary pt-10">
                     <div className="flex flex-wrap items-baseline justify-between gap-3">

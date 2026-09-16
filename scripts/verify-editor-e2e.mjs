@@ -69,8 +69,16 @@ const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePa
 const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, acceptDownloads: true });
 const page = await context.newPage();
 
+// Vercel Analytics only exists on Vercel; its script 404s under `next start`.
+// Excused by name so a real 404 still fails the run.
+const EXPECTED_OFF_PLATFORM = /_vercel\/insights/;
+
 page.on("pageerror", (error) => errors.push(`pageerror: ${error.message}`));
-page.on("console", (message) => message.type() === "error" && errors.push(`console: ${message.text()}`));
+page.on("console", (message) => {
+    if (message.type() !== "error") return;
+    if (EXPECTED_OFF_PLATFORM.test(message.location()?.url ?? "")) return;
+    errors.push(`console: ${message.text()} @ ${message.location()?.url ?? "?"}`);
+});
 
 const editCount = async () => Number(/(\d+)\s+edits?/.exec(await page.locator("header p.text-xs").first().innerText())?.[1] ?? -1);
 

@@ -21,6 +21,9 @@ export function SiteFooter() {
                         <Link href="/" className="text-tertiary transition hover:text-secondary">
                             Open a PDF
                         </Link>
+                        <Link href="/extract" className="text-tertiary transition hover:text-secondary">
+                            Extract &amp; redact
+                        </Link>
                     </div>
                     <div className="flex flex-col gap-2">
                         <span className="text-xs font-semibold tracking-wide text-quaternary uppercase">Guides</span>

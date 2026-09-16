@@ -27,6 +27,15 @@ function getPdfjs(): Promise<PdfJs> {
     return pdfjsPromise;
 }
 
+/**
+ * The pdf.js operator codes, for callers that need to inspect what a page
+ * draws. Exposed through the same lazy loader so nothing static-imports the
+ * library for the sake of a handful of constants.
+ */
+export async function getOps(): Promise<(typeof import("pdfjs-dist"))["OPS"]> {
+    return (await getPdfjs()).OPS;
+}
+
 export interface LoadedPdf {
     proxy: PDFDocumentProxy;
     sizes: SourcePageSize[];

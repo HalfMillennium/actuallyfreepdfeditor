@@ -14,7 +14,8 @@
     "verify:parsers": "node scripts/verify-blog-parsers.mjs",
     "verify:blog": "npm run verify:gates && npm run verify:parsers",
     "blog:draft": "node scripts/blog-draft.mjs",
-    "verify:extract": "node scripts/verify-extract.mjs"
+    "verify:extract": "node scripts/verify-extract.mjs",
+    "verify:extract-e2e": "node scripts/verify-extract-e2e.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.120.0",

@@ -3,6 +3,8 @@
 import type { PDFDocumentProxy, PDFPageProxy } from "pdfjs-dist";
 import type { TextItem as PdfTextItem } from "pdfjs-dist/types/src/display/api";
 
+import { getOps } from "@/lib/pdf-document";
+
 import type { PageText, TextItem } from "./types";
 
 /**
@@ -15,14 +17,38 @@ import type { PageText, TextItem } from "./types";
  */
 
 /**
- * Below this many characters a page is treated as needing OCR.
+ * Below this many characters a page is *suspected* of needing OCR.
  *
  * Deliberately not zero. Scans routinely carry a handful of characters from a
  * stamp, a footer added by the scanner, or an embedded form field, and treating
  * those pages as "has text" would hand the user four characters and call it a
  * result.
+ *
+ * On its own this is not enough, which is what `paintsImage` is for: a title
+ * page or a covering letter can legitimately carry two short lines of real text
+ * and nothing else, and calling that a scan is both wrong and annoying.
  */
 export const SCAN_CHAR_THRESHOLD = 96;
+
+/**
+ * Whether the page paints a raster image.
+ *
+ * A page with almost no text is only a scan if there is a picture there
+ * instead. Fetching the operator list is not free, so this is asked only about
+ * pages that already look thin.
+ */
+async function paintsImage(page: PDFPageProxy): Promise<boolean> {
+    try {
+        const OPS = await getOps();
+        const wanted = new Set<number>([OPS.paintImageXObject, OPS.paintImageXObjectRepeat, OPS.paintInlineImageXObject, OPS.paintInlineImageXObjectGroup, OPS.paintImageMaskXObject]);
+        const { fnArray } = await page.getOperatorList();
+        return fnArray.some((fn) => wanted.has(fn));
+    } catch {
+        // If the page will not give up its operator list, fall back to the
+        // character count alone rather than failing the whole survey.
+        return true;
+    }
+}
 
 /** Extracts positioned text from a page's native text layer. */
 export async function readTextLayer(page: PDFPageProxy, pageIndex: number, rotation: number): Promise<PageText> {
@@ -61,13 +87,19 @@ export async function readTextLayer(page: PDFPageProxy, pageIndex: number, rotat
 
     const nativeCharCount = items.reduce((sum, item) => sum + item.text.trim().length, 0);
 
+    // Thin *and* pictorial means a scan. Thin on its own — a title page, a
+    // covering letter — is just a page with little on it, and its text layer is
+    // still the best reading of it there is.
+    const thin = nativeCharCount < SCAN_CHAR_THRESHOLD;
+    const source = thin && (nativeCharCount === 0 || (await paintsImage(page))) ? "none" : "text-layer";
+
     return {
         pageIndex,
         width: viewport.width,
         height: viewport.height,
         items,
         nativeCharCount,
-        source: nativeCharCount >= SCAN_CHAR_THRESHOLD ? "text-layer" : "none",
+        source,
     };
 }
 

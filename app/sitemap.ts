@@ -21,6 +21,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     return [
         { url: absoluteUrl("/") },
+        { url: absoluteUrl("/extract") },
         { url: absoluteUrl("/blog"), ...(newest ? { lastModified: newest } : {}) },
         ...posts.map((post) => ({
             url: absoluteUrl(`/blog/${post.slug}`),
