@@ -82,6 +82,18 @@ export const BACKLOG: BacklogEntry[] = [
     { id: "bl-058", query: "how to read a pdf that opens as a blank page", intent: "access-and-viewing", volume: "medium", used: false },
     { id: "bl-059", query: "how to sign a pdf twice for two people", intent: "signing", volume: "low", used: false },
     { id: "bl-060", query: "how to add a date stamp to a scanned form", intent: "add-text", volume: "low", used: false },
+
+    /* Extraction and privacy cleanup — the /extract surface. */
+    { id: "bl-061", query: "how to extract text from a pdf", intent: "data-extraction", volume: "high", used: true, usedInRun: "manual-2026-W38" },
+    { id: "bl-062", query: "how to convert a pdf table to csv", intent: "data-extraction", volume: "high", used: true, usedInRun: "manual-2026-W38" },
+    { id: "bl-063", query: "how to ocr a pdf without uploading it", intent: "data-extraction", volume: "high", used: true, usedInRun: "manual-2026-W38" },
+    { id: "bl-064", query: "how to find personal data in a document before sending it", intent: "redaction", volume: "medium", used: true, usedInRun: "manual-2026-W38" },
+    { id: "bl-065", query: "how to check a pdf redaction actually worked", intent: "redaction", volume: "medium", used: true, usedInRun: "manual-2026-W38" },
+    { id: "bl-066", query: "how to copy text from a scanned pdf", intent: "data-extraction", volume: "high", used: false },
+    { id: "bl-067", query: "how to convert a pdf to json", intent: "data-extraction", volume: "medium", used: false },
+    { id: "bl-068", query: "how to extract data from hundreds of invoices", intent: "data-extraction", volume: "medium", used: false },
+    { id: "bl-069", query: "free ocr that does not upload your files", intent: "data-extraction", volume: "medium", used: false },
+    { id: "bl-070", query: "how to get a bank statement into a spreadsheet", intent: "data-extraction", volume: "high", used: false },
 ];
 
 export function unusedBacklog(limit = 12): BacklogEntry[] {

@@ -36,6 +36,7 @@ export const CAPABILITIES = {
         "turn a table you draw a box around into CSV or JSON, with the columns worked out from the gaps between the text",
         "find likely personal data — email addresses, phone numbers, card numbers, IBANs, US Social Security numbers, UK National Insurance numbers, UK postcodes, IP addresses and dates of birth — and list every match for review",
         "truly redact ticked matches or a drawn region: the affected pages are rebuilt so the removed text is no longer in the file, and the result is re-read to confirm it is gone",
+        "clear a redacted file's title, author, subject and keywords, so the metadata does not carry what the pages no longer say",
         "open several files at once and run the same export across all of them",
     ],
     cannot: [

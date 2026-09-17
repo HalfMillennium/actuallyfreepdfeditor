@@ -5,6 +5,7 @@ export const TASK_INTENTS = [
     "signing",
     "annotation",
     "redaction",
+    "data-extraction",
     "page-management",
     "access-and-viewing",
     "file-handling",

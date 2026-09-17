@@ -1,7 +1,7 @@
 import type { TaskIntent } from "./types";
 
 /** Task intents whose articles are procedural enough to carry HowTo structured data. */
-export const PROCEDURAL_INTENTS: TaskIntent[] = ["add-text", "signing", "page-management", "redaction", "annotation"];
+export const PROCEDURAL_INTENTS: TaskIntent[] = ["add-text", "signing", "page-management", "redaction", "annotation", "data-extraction"];
 
 /** Human-readable labels for the ops table and post metadata. */
 export const INTENT_LABELS: Record<TaskIntent, string> = {
@@ -9,6 +9,7 @@ export const INTENT_LABELS: Record<TaskIntent, string> = {
     signing: "Signing",
     annotation: "Annotation",
     redaction: "Redaction",
+    "data-extraction": "Extracting data",
     "page-management": "Pages",
     "access-and-viewing": "Opening & viewing",
     "file-handling": "Files",

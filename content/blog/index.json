@@ -1,5 +1,65 @@
 [
   {
+    "slug": "find-personal-data-in-a-document-before-sending",
+    "title": "Find the Personal Data Before You Send It",
+    "dek": "The disclosure that causes trouble is almost never the one on page one. A pass for email addresses, card numbers and national IDs takes a minute and catches most of it.",
+    "date": "2026-09-17",
+    "tags": [
+      "privacy",
+      "redaction",
+      "compliance"
+    ],
+    "taskIntent": "redaction"
+  },
+  {
+    "slug": "how-to-check-a-pdf-redaction-worked",
+    "title": "How to Check a Redaction Actually Worked",
+    "dek": "Every serious redaction failure looked correct on screen. Four checks take two minutes and would have caught all of them.",
+    "date": "2026-09-17",
+    "tags": [
+      "redaction",
+      "privacy",
+      "verification"
+    ],
+    "taskIntent": "redaction"
+  },
+  {
+    "slug": "how-to-convert-a-pdf-table-to-csv",
+    "title": "How to Get a Table Out of a PDF",
+    "dek": "A PDF has no idea it contains a table. Here is how column detection actually works, and how to tell a good extraction from one that has quietly shifted a column.",
+    "date": "2026-09-17",
+    "tags": [
+      "extraction",
+      "tables",
+      "csv"
+    ],
+    "taskIntent": "data-extraction"
+  },
+  {
+    "slug": "how-to-extract-text-from-a-pdf",
+    "title": "How to Extract Text From a PDF",
+    "dek": "Two entirely different jobs share one name. Which one you have depends on whether the PDF contains text or a picture of text, and you can tell in about three seconds.",
+    "date": "2026-09-17",
+    "tags": [
+      "extraction",
+      "text",
+      "ocr"
+    ],
+    "taskIntent": "data-extraction"
+  },
+  {
+    "slug": "ocr-a-scanned-pdf-without-uploading-it",
+    "title": "OCR a Scanned PDF Without Uploading It",
+    "dek": "Browser OCR is now good enough for real work, and it means the document never leaves your machine. Here is what it does well, what it does badly, and what it still cannot give you.",
+    "date": "2026-09-17",
+    "tags": [
+      "ocr",
+      "privacy",
+      "extraction"
+    ],
+    "taskIntent": "data-extraction"
+  },
+  {
     "slug": "wet-signature-vs-electronic-signature",
     "title": "Wet Signature vs Electronic Signature",
     "dek": "A wet signature is ink on paper; an electronic signature is a mark attached to a digital file. The medium is the whole difference — and it does not tell you which one your form accepts.",

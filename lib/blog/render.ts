@@ -66,7 +66,10 @@ export function renderPost({ draft, brief, date, runId }: RenderInput): string {
  * disambiguate.
  */
 function withCtaLink(paragraph: string): string {
-    return paragraph.replace(/actuallyfreepdfeditor\.com/, `[actuallyfreepdfeditor.com](${CAPABILITIES.url})`);
+    // A trailing path is captured so an article about extraction can send the
+    // reader to /extract rather than to the editor, which is the wrong tool for
+    // it. Without this the link text and the href could disagree.
+    return paragraph.replace(/actuallyfreepdfeditor\.com(\/[\w/-]*)?/, (match, path: string | undefined) => `[${match}](${CAPABILITIES.url}${path ?? ""})`);
 }
 
 /** The post's filename. Date-prefixed so the directory sorts chronologically. */
