@@ -15,7 +15,7 @@
 
 export type Rotation = 0 | 90 | 180 | 270;
 
-export type ToolId = "select" | "text" | "signature" | "image" | "highlight" | "whiteout" | "draw";
+export type ToolId = "select" | "edit-text" | "text" | "signature" | "image" | "highlight" | "whiteout" | "draw" | "shape";
 
 export type FontId = "helvetica" | "times" | "courier";
 
@@ -24,6 +24,25 @@ export interface Box {
     y: number;
     width: number;
     height: number;
+}
+
+/**
+ * The link between a replacement text box and the original text it replaces.
+ *
+ * `rects` are in **source points**: the page's own frame before any rotation
+ * (neither its `/Rotate` nor the user's), top-left origin. The original glyphs
+ * belong to the page's content, not to the display, so this is the one piece
+ * of geometry that must not travel when the page is turned — see
+ * `sourceRectToDisplay` in `lib/geometry.ts` for how it is drawn on screen.
+ */
+export interface TextErase {
+    rects: Box[];
+    /**
+     * Sampled page colour behind the original text. The on-screen preview
+     * always paints it (the canvas still shows the old glyphs); the export
+     * paints it only where the glyphs could not be removed from the file.
+     */
+    background: string;
 }
 
 interface AnnotationCommon extends Box {
@@ -42,6 +61,8 @@ export interface TextAnnotation extends AnnotationCommon {
     /** `#rrggbb`. */
     color: string;
     align: "left" | "center" | "right";
+    /** Present when this box replaces text that was already in the PDF. */
+    erase?: TextErase;
 }
 
 export interface ImageAnnotation extends AnnotationCommon {
@@ -75,7 +96,26 @@ export interface DrawAnnotation extends AnnotationCommon {
     strokeWidth: number;
 }
 
-export type Annotation = TextAnnotation | ImageAnnotation | ShapeAnnotation | DrawAnnotation;
+export type FigureKind = "rectangle" | "ellipse" | "line" | "arrow";
+
+export interface FigureAnnotation extends AnnotationCommon {
+    kind: "figure";
+    figure: FigureKind;
+    /** `#rrggbb`. */
+    stroke: string;
+    /** `#rrggbb`, or null for no fill. Ignored by lines and arrows. */
+    fill: string | null;
+    strokeWidth: number;
+    /**
+     * Start and end of a line or arrow, as 0–1 fractions of the box — the same
+     * convention as `DrawAnnotation.points`, so resizing stretches it. The
+     * arrowhead is at `end`.
+     */
+    start: [number, number];
+    end: [number, number];
+}
+
+export type Annotation = TextAnnotation | ImageAnnotation | ShapeAnnotation | DrawAnnotation | FigureAnnotation;
 
 export type AnnotationKind = Annotation["kind"];
 

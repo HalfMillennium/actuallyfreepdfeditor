@@ -2,7 +2,7 @@
 
 import { type ReactNode, createContext, useCallback, useContext, useMemo, useState } from "react";
 
-import type { FontId } from "@/lib/types";
+import type { FigureKind, FontId } from "@/lib/types";
 
 /**
  * Style the *tools* carry, as opposed to style baked into an annotation.
@@ -31,15 +31,24 @@ export interface PenStyle {
     strokeWidth: number;
 }
 
+export interface FigureStyle {
+    figure: FigureKind;
+    stroke: string;
+    fill: string | null;
+    strokeWidth: number;
+}
+
 interface ToolSettingsValue {
     text: TextStyle;
     highlight: ShapeStyle;
     whiteout: ShapeStyle;
     pen: PenStyle;
+    figure: FigureStyle;
     setText: (patch: Partial<TextStyle>) => void;
     setHighlight: (patch: Partial<ShapeStyle>) => void;
     setWhiteout: (patch: Partial<ShapeStyle>) => void;
     setPen: (patch: Partial<PenStyle>) => void;
+    setFigure: (patch: Partial<FigureStyle>) => void;
 }
 
 /** Swatches drawn from the project palette, plus the neutrals you actually need. */
@@ -51,6 +60,7 @@ const DEFAULTS = {
     highlight: { color: "#ffe548", opacity: 0.4 } satisfies ShapeStyle,
     whiteout: { color: "#ffffff", opacity: 1 } satisfies ShapeStyle,
     pen: { color: "#972d07", strokeWidth: 2 } satisfies PenStyle,
+    figure: { figure: "rectangle", stroke: "#ff4b3e", fill: null, strokeWidth: 2 } satisfies FigureStyle,
 };
 
 const ToolSettingsContext = createContext<ToolSettingsValue | null>(null);
@@ -66,15 +76,17 @@ export function ToolSettingsProvider({ children }: { children: ReactNode }) {
     const [highlight, setHighlightState] = useState<ShapeStyle>(DEFAULTS.highlight);
     const [whiteout, setWhiteoutState] = useState<ShapeStyle>(DEFAULTS.whiteout);
     const [pen, setPenState] = useState<PenStyle>(DEFAULTS.pen);
+    const [figure, setFigureState] = useState<FigureStyle>(DEFAULTS.figure);
 
     const setText = useCallback((patch: Partial<TextStyle>) => setTextState((current) => ({ ...current, ...patch })), []);
     const setHighlight = useCallback((patch: Partial<ShapeStyle>) => setHighlightState((current) => ({ ...current, ...patch })), []);
     const setWhiteout = useCallback((patch: Partial<ShapeStyle>) => setWhiteoutState((current) => ({ ...current, ...patch })), []);
     const setPen = useCallback((patch: Partial<PenStyle>) => setPenState((current) => ({ ...current, ...patch })), []);
+    const setFigure = useCallback((patch: Partial<FigureStyle>) => setFigureState((current) => ({ ...current, ...patch })), []);
 
     const value = useMemo(
-        () => ({ text, highlight, whiteout, pen, setText, setHighlight, setWhiteout, setPen }),
-        [text, highlight, whiteout, pen, setText, setHighlight, setWhiteout, setPen],
+        () => ({ text, highlight, whiteout, pen, figure, setText, setHighlight, setWhiteout, setPen, setFigure }),
+        [text, highlight, whiteout, pen, figure, setText, setHighlight, setWhiteout, setPen, setFigure],
     );
 
     return <ToolSettingsContext.Provider value={value}>{children}</ToolSettingsContext.Provider>;

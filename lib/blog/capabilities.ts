@@ -14,6 +14,8 @@
  */
 export const CAPABILITIES = {
     can: [
+        "edit the text already in a PDF: click a line to reword or delete it, and the original words are removed from the exported file rather than covered — on pages that have a real text layer, not scans",
+        "find and replace a word or phrase across every page at once, with match-case and whole-word options, as a single undoable step",
         "add text anywhere on a page, with control over font, size, weight, slant, colour and alignment",
         "draw a signature with a mouse, trackpad or finger",
         "type a signature in a handwriting-style face",
@@ -21,6 +23,8 @@ export const CAPABILITIES = {
         "highlight passages in a chosen colour and opacity",
         "white-out (cover) a region so the content underneath is not visible in the exported file — this covers, it does not remove",
         "draw freehand on a page with a pen, in a chosen colour and stroke width",
+        "draw rectangles, ellipses, lines and arrows, with a chosen stroke colour, stroke width and optional fill",
+        "stamp page numbers on every page (1, Page 1, Page 1 of N, 1 / N) or Bates numbers with a prefix and zero-padding, in any corner or centred, optionally skipping the first page",
         "place an image on a page",
         "move, resize and delete anything you add",
         "undo and redo every edit",
@@ -43,7 +47,9 @@ export const CAPABILITIES = {
         "make a scan searchable: OCR text can be exported, but it is not written back into the PDF as a selectable text layer, so the file itself stays a picture",
         "OCR anything other than English — only the English training data is shipped",
         "convert a PDF to Word, PowerPoint or a formatted spreadsheet (.docx, .pptx, .xlsx); extraction produces plain text, Markdown, CSV and JSON instead",
-        "edit the text that is already in the original PDF — added text sits on top as a new layer",
+        "edit text in a scanned page — there is no text layer to edit, so text can only be typed over it",
+        "keep the document's own font when text is edited: the new wording is set in the closest of Helvetica, Times or Courier, because embedded fonts are almost always subset to the characters already used",
+        "reflow a paragraph when edited text gets longer: each line is edited on its own and does not push the lines below it down",
         "fill interactive AcroForm fields as form data (text can be placed over them visually instead)",
         "merge two separate PDF files into one",
         "split one PDF into several separate files",
@@ -63,6 +69,7 @@ export const CAPABILITIES = {
         "work is kept in the browser for 24 hours so a refresh does not lose it, then dropped",
         "OCR runs on your own processor, so a long scan takes minutes rather than seconds",
         "redacted pages are flattened to images, which makes the file larger and stops the text on those pages being selectable — that is the cost of the text genuinely being gone",
+        "edited and replaced text uses Latin characters (Windows-1252); characters outside that set come out as a question mark",
         "the editor is at the site root; extraction, OCR, table export and redaction are at /extract on the same site",
     ],
     url: "https://actuallyfreepdfeditor.com",

@@ -46,6 +46,8 @@ export type EditorAction =
      */
     | { type: "annotation/update"; id: string; patch: Partial<Annotation>; transient?: boolean }
     | { type: "annotation/delete"; id: string }
+    /** Several additions and changes as one undo step — find & replace, page numbering. */
+    | { type: "annotation/batch"; add?: Annotation[]; update?: Array<{ id: string; patch: Partial<Annotation> }> }
     | { type: "history/checkpoint" }
     | { type: "page/rotate"; pageId: string; delta: 90 | -90 }
     | { type: "page/delete"; pageId: string }
@@ -111,6 +113,17 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
             if (!state.doc) return state;
             const annotations = state.doc.annotations.map((a) => (a.id === action.id ? ({ ...a, ...action.patch } as Annotation) : a));
             return commit(state, { pages: state.doc.pages, annotations }, { transient: action.transient });
+        }
+
+        case "annotation/batch": {
+            if (!state.doc) return state;
+            const patches = new Map((action.update ?? []).map((entry) => [entry.id, entry.patch]));
+            if (patches.size === 0 && !action.add?.length) return state;
+            const annotations = [
+                ...state.doc.annotations.map((a) => (patches.has(a.id) ? ({ ...a, ...patches.get(a.id) } as Annotation) : a)),
+                ...(action.add ?? []),
+            ];
+            return commit(state, { pages: state.doc.pages, annotations });
         }
 
         case "annotation/delete": {

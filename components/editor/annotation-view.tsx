@@ -4,7 +4,8 @@ import { type CSSProperties, type PointerEvent as ReactPointerEvent, useCallback
 
 import { FONTS, LINE_HEIGHT_RATIO } from "@/lib/fonts";
 import { clampBoxToPage } from "@/lib/geometry";
-import type { Annotation, TextAnnotation } from "@/lib/types";
+import { measureText } from "@/lib/text-edit/text-lines";
+import type { Annotation, FigureAnnotation, TextAnnotation } from "@/lib/types";
 import { cx } from "@/utils/cx";
 
 /** Corner handles, named by the corner they pin. */
@@ -173,10 +174,13 @@ export function AnnotationView({
     /**
      * A text box the user clicked into but never typed in is invisible and
      * un-clickable, so tidy it away rather than leaving litter on the page.
+     *
+     * Not so for a box that replaces existing text: emptying one is how you
+     * delete a line from the original document, and it has to stay to do that.
      */
     const stopEditing = useCallback(() => {
         setIsEditingText(false);
-        if (annotation.kind === "text" && annotation.text.trim() === "") onDelete(annotation.id);
+        if (annotation.kind === "text" && !annotation.erase && annotation.text.trim() === "") onDelete(annotation.id);
     }, [annotation, onDelete]);
 
     return (
@@ -265,6 +269,8 @@ function describe(annotation: Annotation): string {
             return "White-out block";
         case "draw":
             return "Drawing";
+        case "figure":
+            return annotation.figure === "rectangle" ? "Rectangle" : annotation.figure === "ellipse" ? "Ellipse" : annotation.figure === "line" ? "Line" : "Arrow";
     }
 }
 
@@ -305,9 +311,72 @@ function AnnotationBody({ annotation, zoom, isEditing, onChange, onStopEditing }
                 </svg>
             );
 
+        case "figure":
+            return <FigureBody annotation={annotation} zoom={zoom} />;
+
         case "text":
             return <TextBody annotation={annotation} zoom={zoom} isEditing={isEditing} onChange={onChange} onStopEditing={onStopEditing} />;
     }
+}
+
+/**
+ * Rectangles, ellipses, lines and arrows.
+ *
+ * Drawn in a pixel-sized viewBox rather than a unit square so the stroke keeps
+ * its width and an arrowhead keeps its shape however the box is stretched. The
+ * geometry mirrors `drawFigure` in `lib/export-pdf.ts`: strokes are centred on
+ * the box edge for lines and inset by half a stroke for closed shapes.
+ */
+function FigureBody({ annotation, zoom }: { annotation: FigureAnnotation; zoom: number }) {
+    const w = annotation.width * zoom;
+    const h = annotation.height * zoom;
+    const sw = annotation.strokeWidth * zoom;
+    const common = { stroke: annotation.stroke, strokeWidth: sw, fill: annotation.fill ?? "none" };
+
+    if (annotation.figure === "rectangle" || annotation.figure === "ellipse") {
+        const inset = sw / 2;
+        return (
+            <svg width={w} height={h} className="block overflow-visible">
+                {annotation.figure === "rectangle" ? (
+                    <rect x={inset} y={inset} width={Math.max(0, w - sw)} height={Math.max(0, h - sw)} {...common} />
+                ) : (
+                    <ellipse cx={w / 2} cy={h / 2} rx={Math.max(0, w / 2 - inset)} ry={Math.max(0, h / 2 - inset)} {...common} />
+                )}
+            </svg>
+        );
+    }
+
+    const [x1, y1] = [annotation.start[0] * w, annotation.start[1] * h];
+    const [x2, y2] = [annotation.end[0] * w, annotation.end[1] * h];
+    const head = annotation.figure === "arrow" ? arrowHead(x1, y1, x2, y2, sw) : null;
+
+    return (
+        <svg width={w} height={h} className="block overflow-visible">
+            <line x1={x1} y1={y1} x2={head ? head.shaftX : x2} y2={head ? head.shaftY : y2} stroke={annotation.stroke} strokeWidth={sw} strokeLinecap={head ? "butt" : "round"} />
+            {head && <polygon points={head.points.map(([x, y]) => `${x},${y}`).join(" ")} fill={annotation.stroke} />}
+        </svg>
+    );
+}
+
+/** Arrowhead geometry, shared in spirit with the exporter (same proportions). */
+export function arrowHead(x1: number, y1: number, x2: number, y2: number, strokeWidth: number) {
+    const length = Math.hypot(x2 - x1, y2 - y1) || 1;
+    const size = Math.min(Math.max(strokeWidth * 4, 8), length * 0.6);
+    const ux = (x2 - x1) / length;
+    const uy = (y2 - y1) / length;
+    const bx = x2 - ux * size;
+    const by = y2 - uy * size;
+    const half = size * 0.45;
+    return {
+        points: [
+            [x2, y2],
+            [bx - uy * half, by + ux * half],
+            [bx + uy * half, by - ux * half],
+        ] as Array<[number, number]>,
+        // Stop the shaft inside the head so its square end does not poke out.
+        shaftX: x2 - ux * size * 0.8,
+        shaftY: y2 - uy * size * 0.8,
+    };
 }
 
 function TextBody({
@@ -352,8 +421,17 @@ function TextBody({
                 value={annotation.text}
                 onChange={(event) => {
                     const text = event.target.value;
-                    const lines = text.split("\n").length;
-                    onChange(annotation.id, { text, height: lines * annotation.fontSize * LINE_HEIGHT_RATIO }, true);
+                    const lines = text.split("\n");
+                    // Lines are never wrapped (the exporter does not wrap
+                    // either), so the box grows to fit the longest one.
+                    const widest = Math.max(
+                        ...lines.map((line) => measureText(line, annotation.fontId, annotation.fontSize, annotation.bold, annotation.italic)),
+                    );
+                    onChange(
+                        annotation.id,
+                        { text, height: lines.length * annotation.fontSize * LINE_HEIGHT_RATIO, width: Math.max(annotation.width, widest + 2) },
+                        true,
+                    );
                 }}
                 onBlur={onStopEditing}
                 onKeyDown={(event) => {
@@ -365,15 +443,18 @@ function TextBody({
                 }}
                 onPointerDown={(event) => event.stopPropagation()}
                 spellCheck={false}
-                className="size-full resize-none overflow-hidden border-0 bg-white/70 p-0 outline-none"
+                wrap="off"
+                className="size-full resize-none overflow-hidden border-0 bg-white/70 p-0 whitespace-pre outline-none"
                 style={typography}
             />
         );
     }
 
     return (
-        <div className="size-full break-words whitespace-pre-wrap" style={typography}>
-            {annotation.text || <span className="opacity-40">Double-click to edit</span>}
+        // `pre`, not `pre-wrap`: the exported PDF breaks lines only where the
+        // text has a newline, so the preview must not wrap where it does not.
+        <div className="size-full whitespace-pre" style={typography}>
+            {annotation.text || (!annotation.erase && <span className="opacity-40">Double-click to edit</span>)}
         </div>
     );
 }

@@ -6,19 +6,21 @@ import { RefreshCcw01, RefreshCw01, Trash01 } from "@untitledui/icons";
 
 import { ButtonUtility } from "@/components/base/buttons/button-utility";
 import { LINE_HEIGHT_RATIO } from "@/lib/fonts";
-import { createId } from "@/lib/geometry";
-import type { Annotation, DrawAnnotation, EditorPage, ShapeAnnotation, TextAnnotation } from "@/lib/types";
+import { createId, sourceRectToDisplay } from "@/lib/geometry";
+import { type TextLine, getSamplingCanvas, getTextLines, isLineEdited, lineBox, replacementFor, sampleColors } from "@/lib/text-edit/text-lines";
+import type { Annotation, Box, DrawAnnotation, EditorPage, FigureAnnotation, Rotation, ShapeAnnotation, SourcePageSize, TextAnnotation } from "@/lib/types";
 import { displaySize, totalRotation } from "@/lib/types";
 import { cx } from "@/utils/cx";
 
 import { AnnotationView } from "./annotation-view";
 import { useEditor } from "./editor-context";
 import { PdfPageCanvas } from "./pdf-page-canvas";
-import { type TextStyle, useToolSettings } from "./tool-settings";
+import { type FigureStyle, type TextStyle, useToolSettings } from "./tool-settings";
 
-/** A rectangle or scribble being dragged out, before it becomes an annotation. */
+/** A rectangle, shape or scribble being dragged out, before it becomes an annotation. */
 type Draft =
     | { kind: "rect"; pageId: string; x0: number; y0: number; x1: number; y1: number }
+    | { kind: "figure"; pageId: string; x0: number; y0: number; x1: number; y1: number }
     | { kind: "draw"; pageId: string; points: Array<[number, number]> };
 
 interface Props {
@@ -27,12 +29,29 @@ interface Props {
 
 export function PageStack({ onRequestPageFocus }: Props) {
     const { state, dispatch, pdf } = useEditor();
-    const { text: textStyle, highlight, whiteout, pen } = useToolSettings();
+    const { text: textStyle, highlight, whiteout, pen, figure: figureStyle } = useToolSettings();
     const [draft, setDraft] = useState<Draft | null>(null);
     /** Id of a text box just created by the text tool, so it opens ready to type. */
     const [autoEditId, setAutoEditId] = useState<string | null>(null);
 
     const { doc, sourceSizes, zoom, tool, selectedId } = state;
+
+    /**
+     * Deleting a box that replaces original text deletes the *text*, which is
+     * what someone pressing Delete on a line of the document means. Putting
+     * the original back is a separate, explicit action in the toolbar.
+     */
+    const removeAnnotation = useCallback(
+        (id: string) => {
+            const target = doc?.annotations.find((a) => a.id === id);
+            if (target?.kind === "text" && target.erase) {
+                if (target.text !== "") dispatch({ type: "annotation/update", id, patch: { text: "" } });
+                return;
+            }
+            dispatch({ type: "annotation/delete", id });
+        },
+        [dispatch, doc],
+    );
 
     /* Keyboard: delete the selection, undo/redo. */
     useEffect(() => {
@@ -48,14 +67,14 @@ export function PageStack({ onRequestPageFocus }: Props) {
             if (typing) return;
             if ((event.key === "Delete" || event.key === "Backspace") && selectedId) {
                 event.preventDefault();
-                dispatch({ type: "annotation/delete", id: selectedId });
+                removeAnnotation(selectedId);
             }
             if (event.key === "Escape") dispatch({ type: "selection/set", id: null });
         }
 
         window.addEventListener("keydown", onKeyDown);
         return () => window.removeEventListener("keydown", onKeyDown);
-    }, [dispatch, selectedId]);
+    }, [dispatch, removeAnnotation, selectedId]);
 
     const pointInPage = useCallback((event: ReactPointerEvent, element: HTMLElement) => {
         const rect = element.getBoundingClientRect();
@@ -93,6 +112,10 @@ export function PageStack({ onRequestPageFocus }: Props) {
             }
         }
 
+        if (draft.kind === "figure") {
+            annotation = newFigure(draft, figureStyle);
+        }
+
         if (draft.kind === "draw" && draft.points.length > 1) {
             const xs = draft.points.map(([x]) => x);
             const ys = draft.points.map(([, y]) => y);
@@ -120,7 +143,30 @@ export function PageStack({ onRequestPageFocus }: Props) {
 
         if (annotation) dispatch({ type: "annotation/add", annotation });
         setDraft(null);
-    }, [dispatch, doc, draft, highlight, pen, tool, whiteout]);
+    }, [dispatch, doc, draft, figureStyle, highlight, pen, tool, whiteout]);
+
+    /** Turns a line of the PDF's own text into an editable replacement. */
+    const editLine = useCallback(
+        async (page: EditorPage, line: TextLine) => {
+            if (!pdf) return;
+            const source = sourceSizes[page.sourceIndex];
+            const rotation = totalRotation(source, page.rotation);
+
+            let colors = { ink: "#000000", background: "#ffffff" };
+            try {
+                colors = sampleColors(await getSamplingCanvas(pdf, page.sourceIndex, rotation), lineBox(line));
+            } catch {
+                /* keep the defaults: black on white is right far more often than not */
+            }
+
+            const annotation = replacementFor({ pageId: page.id, line, colors, source, displayRotation: rotation });
+            dispatch({ type: "annotation/add", annotation });
+            dispatch({ type: "tool/set", tool: "select" });
+            dispatch({ type: "selection/set", id: annotation.id });
+            setAutoEditId(annotation.id);
+        },
+        [dispatch, pdf, sourceSizes],
+    );
 
     if (!doc || !pdf) return null;
 
@@ -130,6 +176,8 @@ export function PageStack({ onRequestPageFocus }: Props) {
                 const source = sourceSizes[page.sourceIndex];
                 const size = displaySize(source, page.rotation);
                 const annotations = doc.annotations.filter((a) => a.pageId === page.id);
+                const rotation = totalRotation(source, page.rotation);
+                const covers = erasedRects(annotations, source, rotation);
 
                 return (
                     <PageSheet
@@ -145,9 +193,19 @@ export function PageStack({ onRequestPageFocus }: Props) {
                             pdf={pdf}
                             pageNumber={page.sourceIndex + 1}
                             scale={zoom}
-                            rotation={totalRotation(source, page.rotation)}
+                            rotation={rotation}
                             className="absolute inset-0"
                         />
+
+                        {/* The original text an edit replaces, painted out on
+                            screen. (In the exported file it is removed.) */}
+                        {covers.map(({ box, color }, i) => (
+                            <div
+                                key={i}
+                                className="pointer-events-none absolute"
+                                style={{ left: box.x * zoom, top: box.y * zoom, width: box.width * zoom, height: box.height * zoom, backgroundColor: color }}
+                            />
+                        ))}
 
                         <div
                             className={cx("absolute inset-0", tool !== "select" && "cursor-crosshair")}
@@ -160,6 +218,10 @@ export function PageStack({ onRequestPageFocus }: Props) {
                                     dispatch({ type: "selection/set", id: null });
                                     return;
                                 }
+
+                                // Edit-text acts only on the line targets drawn above
+                                // the page; a press on empty paper does nothing.
+                                if (tool === "edit-text") return;
 
                                 if (tool === "text") {
                                     // Suppress the compatibility mouse events:
@@ -186,6 +248,10 @@ export function PageStack({ onRequestPageFocus }: Props) {
                                     setDraft({ kind: "rect", pageId: page.id, x0: x, y0: y, x1: x, y1: y });
                                     return;
                                 }
+                                if (tool === "shape") {
+                                    setDraft({ kind: "figure", pageId: page.id, x0: x, y0: y, x1: x, y1: y });
+                                    return;
+                                }
                                 if (tool === "draw") {
                                     setDraft({ kind: "draw", pageId: page.id, points: [[x, y]] });
                                 }
@@ -196,7 +262,7 @@ export function PageStack({ onRequestPageFocus }: Props) {
 
                                 setDraft((current) => {
                                     if (!current) return current;
-                                    if (current.kind === "rect") return { ...current, x1: x, y1: y };
+                                    if (current.kind === "rect" || current.kind === "figure") return { ...current, x1: x, y1: y };
                                     // Thin the stream a little: sub-pixel moves
                                     // add points without adding fidelity.
                                     const last = current.points[current.points.length - 1];
@@ -221,12 +287,31 @@ export function PageStack({ onRequestPageFocus }: Props) {
                                     onSelect={(id) => dispatch({ type: "selection/set", id })}
                                     onCheckpoint={() => dispatch({ type: "history/checkpoint" })}
                                     onChange={(id, patch, transient) => dispatch({ type: "annotation/update", id, patch, transient })}
-                                    onDelete={(id) => dispatch({ type: "annotation/delete", id })}
+                                    onDelete={removeAnnotation}
                                 />
                             ))}
 
-                            {draft?.pageId === page.id && <DraftPreview draft={draft} zoom={zoom} color={tool === "highlight" ? highlight.color : tool === "whiteout" ? whiteout.color : pen.color} opacity={tool === "highlight" ? highlight.opacity : whiteout.opacity} strokeWidth={pen.strokeWidth} />}
+                            {draft?.pageId === page.id && (
+                                <DraftPreview
+                                    draft={draft}
+                                    zoom={zoom}
+                                    color={tool === "highlight" ? highlight.color : tool === "whiteout" ? whiteout.color : pen.color}
+                                    opacity={tool === "highlight" ? highlight.opacity : whiteout.opacity}
+                                    strokeWidth={pen.strokeWidth}
+                                    figure={figureStyle}
+                                />
+                            )}
                         </div>
+
+                        {tool === "edit-text" && (
+                            <EditTextLayer
+                                page={page}
+                                rotation={rotation}
+                                zoom={zoom}
+                                erased={covers.map((cover) => cover.box)}
+                                onPick={(line) => void editLine(page, line)}
+                            />
+                        )}
                     </PageSheet>
                 );
             })}
@@ -252,6 +337,132 @@ function newText(pageId: string, x: number, y: number, style: TextStyle): TextAn
         italic: style.italic,
         color: style.color,
         align: style.align,
+    };
+}
+
+/** Where each replaced line sits on screen, and the paper colour to paint it out with. */
+function erasedRects(annotations: Annotation[], source: SourcePageSize, rotation: Rotation): Array<{ box: Box; color: string }> {
+    const out: Array<{ box: Box; color: string }> = [];
+    for (const annotation of annotations) {
+        if (annotation.kind !== "text" || !annotation.erase) continue;
+        for (const rect of annotation.erase.rects) {
+            out.push({ box: sourceRectToDisplay(rect, rotation, source.width, source.height), color: annotation.erase.background });
+        }
+    }
+    return out;
+}
+
+/**
+ * The page's existing lines of text, as click targets.
+ *
+ * Shown only while the edit-text tool is active. Lines that already have a
+ * replacement are left out — clicking the replacement edits it instead.
+ */
+function EditTextLayer({
+    page,
+    rotation,
+    zoom,
+    erased,
+    onPick,
+}: {
+    page: EditorPage;
+    rotation: Rotation;
+    zoom: number;
+    erased: Box[];
+    onPick: (line: TextLine) => void;
+}) {
+    const { pdf } = useEditor();
+    const [lines, setLines] = useState<TextLine[] | null>(null);
+
+    useEffect(() => {
+        if (!pdf) return;
+        let cancelled = false;
+        setLines(null);
+        getTextLines(pdf, page.sourceIndex, rotation)
+            .then((result) => !cancelled && setLines(result))
+            .catch(() => !cancelled && setLines([]));
+        return () => {
+            cancelled = true;
+        };
+    }, [pdf, page.sourceIndex, rotation]);
+
+    if (!lines) return null;
+
+    const editable = lines.filter((line) => !isLineEdited(line, erased));
+
+    if (lines.length === 0) {
+        return (
+            <div className="pointer-events-none absolute inset-x-0 top-3 flex justify-center">
+                <p className="rounded-md bg-primary/95 px-3 py-1.5 text-xs font-medium text-tertiary shadow-sm ring-1 ring-secondary">
+                    No editable text on this page — it may be a scan. Use Text to type over it.
+                </p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="pointer-events-none absolute inset-0">
+            {editable.map((line) => {
+                const box = lineBox(line);
+                const pad = 2;
+                return (
+                    <button
+                        key={line.key}
+                        type="button"
+                        title={`Edit “${line.text.length > 60 ? `${line.text.slice(0, 60)}…` : line.text}”`}
+                        aria-label={`Edit text: ${line.text}`}
+                        // `click`, not `pointerdown`: on a phone a swipe that
+                        // starts on a line is a scroll, and only a tap should
+                        // open the line for editing.
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            onPick(line);
+                        }}
+                        className="pointer-events-auto absolute cursor-text rounded-[2px] bg-brand-solid/0 ring-1 ring-brand/30 transition hover:bg-brand-solid/10 hover:ring-2 hover:ring-brand focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none"
+                        style={{
+                            left: (box.x - pad) * zoom,
+                            top: (box.y - pad) * zoom,
+                            width: (box.width + 2 * pad) * zoom,
+                            height: (box.height + 2 * pad) * zoom,
+                        }}
+                    />
+                );
+            })}
+        </div>
+    );
+}
+
+/** A shape from a drag gesture, or null if the drag was too small to mean one. */
+function newFigure(draft: Extract<Draft, { kind: "figure" }>, style: FigureStyle): FigureAnnotation | null {
+    const dx = draft.x1 - draft.x0;
+    const dy = draft.y1 - draft.y0;
+    const isLine = style.figure === "line" || style.figure === "arrow";
+
+    if (isLine ? Math.hypot(dx, dy) < 6 : Math.abs(dx) < 4 || Math.abs(dy) < 4) return null;
+
+    const x = Math.min(draft.x0, draft.x1);
+    const y = Math.min(draft.y0, draft.y1);
+    // A perfectly horizontal or vertical line has a zero-size box; give it one
+    // point of thickness so the fractional endpoints stay well-defined.
+    const width = Math.max(Math.abs(dx), 1);
+    const height = Math.max(Math.abs(dy), 1);
+    const fx = (value: number) => (Math.abs(dx) < 1 ? 0.5 : (value - x) / width);
+    const fy = (value: number) => (Math.abs(dy) < 1 ? 0.5 : (value - y) / height);
+
+    return {
+        id: createId("ann"),
+        pageId: draft.pageId,
+        kind: "figure",
+        figure: style.figure,
+        x,
+        y,
+        width,
+        height,
+        stroke: style.stroke,
+        fill: isLine ? null : style.fill,
+        strokeWidth: style.strokeWidth,
+        start: [fx(draft.x0), fy(draft.y0)],
+        end: [fx(draft.x1), fy(draft.y1)],
     };
 }
 
@@ -331,13 +542,39 @@ function DraftPreview({
     color,
     opacity,
     strokeWidth,
+    figure,
 }: {
     draft: Draft;
     zoom: number;
     color: string;
     opacity: number;
     strokeWidth: number;
+    figure: FigureStyle;
 }) {
+    if (draft.kind === "figure") {
+        const preview = newFigure(draft, figure);
+        if (!preview) return null;
+        return (
+            <div
+                className="pointer-events-none absolute"
+                style={{ left: preview.x * zoom, top: preview.y * zoom, width: preview.width * zoom, height: preview.height * zoom }}
+            >
+                <AnnotationView
+                    annotation={{ ...preview, x: 0, y: 0 }}
+                    zoom={zoom}
+                    isSelected={false}
+                    pageWidth={Infinity}
+                    pageHeight={Infinity}
+                    interactive={false}
+                    onSelect={noop}
+                    onCheckpoint={noop}
+                    onChange={noop}
+                    onDelete={noop}
+                />
+            </div>
+        );
+    }
+
     if (draft.kind === "rect") {
         return (
             <div
@@ -367,3 +604,5 @@ function DraftPreview({
         </svg>
     );
 }
+
+function noop() {}

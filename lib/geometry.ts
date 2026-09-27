@@ -65,3 +65,36 @@ export function rotateAnnotationWithPage<T extends Annotation>(annotation: T, qu
 export function addRotation(rotation: Rotation, delta: number): Rotation {
     return ((((rotation + delta) % 360) + 360) % 360) as Rotation;
 }
+
+/**
+ * Maps a rectangle from source points (the page's unrotated frame, top-left
+ * origin) into display points for a page shown at `rotation` clockwise.
+ *
+ * `width` / `height` are the page's unrotated size.
+ */
+export function sourceRectToDisplay(rect: Box, rotation: Rotation, width: number, height: number): Box {
+    switch (rotation) {
+        case 90:
+            return { x: height - rect.y - rect.height, y: rect.x, width: rect.height, height: rect.width };
+        case 180:
+            return { x: width - rect.x - rect.width, y: height - rect.y - rect.height, width: rect.width, height: rect.height };
+        case 270:
+            return { x: rect.y, y: width - rect.x - rect.width, width: rect.height, height: rect.width };
+        default:
+            return { ...rect };
+    }
+}
+
+/** The inverse of `sourceRectToDisplay`. */
+export function displayRectToSource(rect: Box, rotation: Rotation, width: number, height: number): Box {
+    switch (rotation) {
+        case 90:
+            return { x: rect.y, y: height - rect.x - rect.width, width: rect.height, height: rect.width };
+        case 180:
+            return { x: width - rect.x - rect.width, y: height - rect.y - rect.height, width: rect.width, height: rect.height };
+        case 270:
+            return { x: width - rect.y - rect.height, y: rect.x, width: rect.height, height: rect.width };
+        default:
+            return { ...rect };
+    }
+}

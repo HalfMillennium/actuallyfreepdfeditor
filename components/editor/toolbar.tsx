@@ -8,17 +8,25 @@ import {
     AlignRight,
     Bold01,
     Brush01,
+    ArrowNarrowUpRight,
+    Circle,
     Cursor04,
+    Edit05,
     Eraser,
+    Hash02,
     Image01,
     Italic01,
+    Minus,
     PenTool02,
+    ReverseLeft,
+    SearchMd,
+    Square,
     Type01,
 } from "@untitledui/icons";
 
 import { Select } from "@/components/base/select/select";
 import { FONT_OPTIONS } from "@/lib/fonts";
-import type { Annotation, FontId, ToolId } from "@/lib/types";
+import type { Annotation, FigureKind, FontId, ToolId } from "@/lib/types";
 import { cx } from "@/utils/cx";
 
 import { useEditor } from "./editor-context";
@@ -33,20 +41,31 @@ interface ToolDefinition {
 
 const TOOLS: ToolDefinition[] = [
     { id: "select", label: "Select", hint: "Move and resize what you've added", icon: Cursor04 },
-    { id: "text", label: "Text", hint: "Click the page to start typing", icon: Type01 },
+    { id: "edit-text", label: "Edit text", hint: "Click any line of the document's own text to change it", icon: Edit05 },
+    { id: "text", label: "Add text", hint: "Click the page to start typing", icon: Type01 },
     { id: "signature", label: "Sign", hint: "Draw, type or upload a signature", icon: PenTool02 },
     { id: "image", label: "Image", hint: "Place a picture on the page", icon: Image01 },
     { id: "highlight", label: "Highlight", hint: "Drag over text to highlight it", icon: Brush01 },
     { id: "whiteout", label: "White-out", hint: "Drag to cover something up", icon: Eraser },
     { id: "draw", label: "Draw", hint: "Freehand pen", icon: PenTool02 },
+    { id: "shape", label: "Shapes", hint: "Drag to draw a rectangle, ellipse, line or arrow", icon: Square },
+];
+
+const FIGURES: Array<{ id: FigureKind; label: string; icon: FC<{ className?: string }> }> = [
+    { id: "rectangle", label: "Rectangle", icon: Square },
+    { id: "ellipse", label: "Ellipse", icon: Circle },
+    { id: "line", label: "Line", icon: Minus },
+    { id: "arrow", label: "Arrow", icon: ArrowNarrowUpRight },
 ];
 
 interface Props {
     onPickSignature: () => void;
     onPickImage: () => void;
+    onOpenFindReplace: () => void;
+    onOpenPageNumbers: () => void;
 }
 
-export function Toolbar({ onPickSignature, onPickImage }: Props) {
+export function Toolbar({ onPickSignature, onPickImage, onOpenFindReplace, onOpenPageNumbers }: Props) {
     const { state, dispatch } = useEditor();
 
     const selected = state.doc?.annotations.find((a) => a.id === state.selectedId) ?? null;
@@ -85,6 +104,28 @@ export function Toolbar({ onPickSignature, onPickImage }: Props) {
             <div className="h-6 w-px bg-border-secondary max-md:hidden" />
 
             <ContextualControls selected={selected} />
+
+            {/* Whole-document operations, as opposed to tools you use on a page. */}
+            <div className="ml-auto flex items-center gap-1">
+                <button
+                    type="button"
+                    title="Find and replace text across the document"
+                    onClick={onOpenFindReplace}
+                    className="flex cursor-pointer items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-semibold text-tertiary transition hover:bg-secondary hover:text-secondary"
+                >
+                    <SearchMd className="size-4 shrink-0" />
+                    <span className="hidden xl:inline">Find &amp; replace</span>
+                </button>
+                <button
+                    type="button"
+                    title="Stamp page numbers or Bates numbers on every page"
+                    onClick={onOpenPageNumbers}
+                    className="flex cursor-pointer items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-semibold text-tertiary transition hover:bg-secondary hover:text-secondary"
+                >
+                    <Hash02 className="size-4 shrink-0" />
+                    <span className="hidden xl:inline">Page numbers</span>
+                </button>
+            </div>
         </div>
     );
 }
@@ -105,6 +146,76 @@ function ContextualControls({ selected }: { selected: Annotation | null }) {
     };
 
     const kind = selected?.kind ?? (state.tool === "select" ? null : state.tool);
+
+    if (kind === "edit-text") {
+        return (
+            <p className="text-xs text-tertiary">
+                Click a line of the document&rsquo;s text to change it. The original words are removed from the downloaded file, not just covered.
+            </p>
+        );
+    }
+
+    if (kind === "figure" || kind === "shape") {
+        const figure = selected?.kind === "figure" ? selected : null;
+        const value = figure ?? settings.figure;
+        const isLine = value.figure === "line" || value.figure === "arrow";
+        return (
+            <div className="flex flex-wrap items-center gap-3">
+                {!figure && (
+                    <div className="flex items-center gap-0.5 rounded-lg bg-secondary p-0.5">
+                        {FIGURES.map((option) => (
+                            <button
+                                key={option.id}
+                                type="button"
+                                title={option.label}
+                                aria-pressed={value.figure === option.id}
+                                onClick={() => settings.setFigure({ figure: option.id })}
+                                className={cx(
+                                    "cursor-pointer rounded-md p-1.5 transition",
+                                    value.figure === option.id ? "bg-primary text-brand-secondary shadow-xs" : "text-fg-quaternary hover:text-fg-secondary",
+                                )}
+                            >
+                                <option.icon className="size-4" />
+                            </button>
+                        ))}
+                    </div>
+                )}
+                <Swatches
+                    colors={INK_COLORS}
+                    value={value.stroke}
+                    onChange={(stroke) => (figure ? patch({ stroke }) : settings.setFigure({ stroke }))}
+                />
+                <NumberStepper
+                    label="Stroke"
+                    value={value.strokeWidth}
+                    min={1}
+                    max={24}
+                    onChange={(strokeWidth) => (figure ? patch({ strokeWidth }) : settings.setFigure({ strokeWidth }))}
+                />
+                {!isLine && (
+                    <label className="flex items-center gap-2 text-xs font-medium text-tertiary">
+                        <input
+                            type="checkbox"
+                            checked={value.fill !== null}
+                            onChange={(event) => {
+                                const fill = event.target.checked ? "#ffffff" : null;
+                                figure ? patch({ fill }) : settings.setFigure({ fill });
+                            }}
+                            className="size-4 cursor-pointer accent-[var(--color-brand-600)]"
+                        />
+                        Fill
+                    </label>
+                )}
+                {!isLine && value.fill !== null && (
+                    <Swatches
+                        colors={["#ffffff", ...HIGHLIGHT_COLORS, "#1a1a1a"]}
+                        value={value.fill}
+                        onChange={(fill) => (figure ? patch({ fill }) : settings.setFigure({ fill }))}
+                    />
+                )}
+            </div>
+        );
+    }
 
     if (kind === "text") {
         const text = selected?.kind === "text" ? selected : null;
@@ -180,10 +291,22 @@ function ContextualControls({ selected }: { selected: Annotation | null }) {
                 </div>
 
                 <Swatches
-                    colors={INK_COLORS}
+                    colors={text?.erase && !INK_COLORS.includes(text.color) ? [text.color, ...INK_COLORS] : INK_COLORS}
                     value={value.color}
                     onChange={(color) => (text ? patch({ color }) : settings.setText({ color }))}
                 />
+
+                {text?.erase && (
+                    <button
+                        type="button"
+                        title="Discard this edit and put the original text back"
+                        onClick={() => dispatch({ type: "annotation/delete", id: text.id })}
+                        className="flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-semibold text-tertiary transition hover:bg-secondary hover:text-secondary"
+                    >
+                        <ReverseLeft className="size-4" />
+                        Restore original
+                    </button>
+                )}
             </div>
         );
     }

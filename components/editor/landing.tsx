@@ -4,7 +4,7 @@ import { type DragEvent, useRef, useState } from "react";
 
 import Link from "next/link";
 
-import { AlertCircle, Brush01, CoinsStacked01, Eye, FileX02, PenTool02, Type01, UploadCloud01, WifiOff } from "@untitledui/icons";
+import { AlertCircle, Brush01, CoinsStacked01, Edit05, Eye, FileX02, PenTool02, UploadCloud01, WifiOff } from "@untitledui/icons";
 
 import { Button } from "@/components/base/buttons/button";
 import { LoadingIndicator } from "@/components/application/loading-indicator/loading-indicator";
@@ -14,9 +14,9 @@ import { useEditor } from "./editor-context";
 import { Wordmark } from "./wordmark";
 
 const CAPABILITIES = [
-    { icon: Type01, title: "Add text", body: "Click anywhere and type. Pick the font, size, weight and colour." },
-    { icon: PenTool02, title: "Sign it", body: "Draw with a mouse or finger, type your name, or upload a photo of your signature." },
-    { icon: Brush01, title: "Highlight & white-out", body: "Draw attention to a passage, or cover one up for good." },
+    { icon: Edit05, title: "Edit the text itself", body: "Click a line to reword it, or find & replace across every page. The old words are removed from the file, not covered." },
+    { icon: PenTool02, title: "Add text & sign", body: "Type anywhere on the page, or draw, type or upload your signature." },
+    { icon: Brush01, title: "Mark it up", body: "Highlight, white-out, draw, add boxes and arrows, and stamp page or Bates numbers." },
     { icon: FileX02, title: "Rearrange pages", body: "Reorder, rotate, duplicate and delete pages, then download the result." },
 ];
 

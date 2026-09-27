@@ -7,6 +7,7 @@ import type { ImageAnnotation } from "@/lib/types";
 import { displaySize } from "@/lib/types";
 import { cx } from "@/utils/cx";
 
+import { FindReplaceDialog, PageNumbersDialog } from "./document-tools";
 import { useEditor } from "./editor-context";
 import { type GuideLink, Landing } from "./landing";
 import { PageSidebar } from "./page-sidebar";
@@ -23,6 +24,7 @@ export function EditorShell({ latestGuides }: { latestGuides?: GuideLink[] }) {
     const [activePageId, setActivePageId] = useState<string | null>(null);
     const [isSignatureOpen, setIsSignatureOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [openDialog, setOpenDialog] = useState<"find" | "numbers" | null>(null);
 
     const scrollRef = useRef<HTMLDivElement>(null);
     const imageInputRef = useRef<HTMLInputElement>(null);
@@ -128,7 +130,12 @@ export function EditorShell({ latestGuides }: { latestGuides?: GuideLink[] }) {
         <div className="flex h-dvh flex-col overflow-hidden bg-secondary">
             <TopBar isSidebarOpen={isSidebarOpen} onToggleSidebar={() => setIsSidebarOpen((open) => !open)} onFitWidth={fitToWidth} />
 
-            <Toolbar onPickSignature={() => setIsSignatureOpen(true)} onPickImage={() => imageInputRef.current?.click()} />
+            <Toolbar
+                onPickSignature={() => setIsSignatureOpen(true)}
+                onPickImage={() => imageInputRef.current?.click()}
+                onOpenFindReplace={() => setOpenDialog("find")}
+                onOpenPageNumbers={() => setOpenDialog("numbers")}
+            />
 
             <div className="flex min-h-0 flex-1">
                 {/* Page rail: a permanent column on desktop, an overlay below lg. */}
@@ -166,6 +173,9 @@ export function EditorShell({ latestGuides }: { latestGuides?: GuideLink[] }) {
                     placeOnPage(result, "signature");
                 }}
             />
+
+            <FindReplaceDialog isOpen={openDialog === "find"} onClose={() => setOpenDialog(null)} onJumpToPage={scrollToPage} />
+            <PageNumbersDialog isOpen={openDialog === "numbers"} onClose={() => setOpenDialog(null)} />
 
             <input
                 ref={imageInputRef}

@@ -11,11 +11,15 @@ your own browser tab. Nothing is sent to a server, because there is no server.
 
 | | |
 |---|---|
-| **Text** | Click anywhere and type. Font, size, weight, slant, colour and alignment. |
+| **Edit text** | Click any line of the PDF's own text and retype it. The original glyphs are removed from the page's content stream — not covered — so the old wording can't be selected, searched or copied out of the result. |
+| **Find & replace** | Across every page and everything you've added, as one undo step. Same removal guarantee as above. |
+| **Add text** | Click anywhere and type. Font, size, weight, slant, colour and alignment. |
 | **Signature** | Draw it, type it in a script face, or upload a photo — a near-white background is knocked out automatically so it doesn't land as an opaque rectangle. |
 | **Highlight** | Drag over a passage; colour and opacity are adjustable. |
 | **White-out** | Drag over anything you'd rather not keep. It is painted over in the exported file, not merely hidden. |
 | **Draw** | Freehand pen, with colour and stroke width. |
+| **Shapes** | Rectangles, ellipses, lines and arrows; stroke colour, width and optional fill. |
+| **Page numbers** | `1`, `Page 1 of N`, `1 / N`, or Bates (`ABC000123`) in any corner, optionally skipping the cover page. |
 | **Images** | Drop a picture onto a page. |
 | **Pages** | Reorder, rotate, duplicate and delete. |
 | | Undo/redo throughout (`⌘Z` / `⇧⌘Z`), zoom, fit-to-width, and a thumbnail rail. |
@@ -36,6 +40,7 @@ npm run dev          # http://localhost:3000
 ```bash
 npm run type-check
 npm run verify:geometry   # export coordinate maths, checked against pdf.js
+npm run verify:text-edit  # edit-text really removes glyphs, and nothing else moves
 npm run verify:blog       # pipeline gates, prechecks, RSS parsing, ISO weeks
 npm run verify:e2e        # full browser run-through (see script header for setup)
 
@@ -49,6 +54,25 @@ page's rotation when it writes them back. The script stamps text at a known
 position on pages at `/Rotate` 0, 90, 180 and 270, exports, and reads the glyph
 positions back out with pdf.js — all four land within 0.5 pt of target.
 
+### How editing existing text works
+
+PDFs don't store paragraphs; they store "draw these glyphs here" operators. So
+an edit has two halves:
+
+1. **On screen**, pdf.js's text layer is grouped into lines. Clicking one turns
+   it into an ordinary text box set in the nearest standard face (embedded
+   fonts are nearly always subset, so they can't set new wording), at the same
+   size, baseline and sampled colour, with the old line painted out behind it.
+2. **On export**, `lib/text-edit/remove-text.ts` replays the page's content
+   stream with a small text-state interpreter, drops each glyph whose centre
+   falls in the edited region, and puts a positioning adjustment of exactly
+   that glyph's advance in its place — so the rest of the line doesn't move.
+   Everything it doesn't touch is copied byte for byte.
+
+When it can't vouch for a region — unknown font widths, text inside a form
+XObject, invisible OCR text over a scan — it falls back to painting the old
+line out, as the preview does. The failure mode is "covered", never "shifted".
+
 ## How it fits together
 
 ```
@@ -59,6 +83,8 @@ lib/
   fonts.ts          text metrics shared by the preview and the exporter
   pdf-document.ts   pdf.js loading and page rendering
   session-storage.ts  localStorage + IndexedDB, with a 24-hour lifetime
+  text-edit/        existing-text editing: line detection, content-stream
+                    tokenizer, glyph removal, font metrics
 components/
   editor/           the app
   base/ application/ foundations/   Untitled UI React (MIT), vendored

@@ -3,8 +3,10 @@
  *
  * Builds a sample PDF (including a page with /Rotate 90, so the rotation
  * handling is genuinely exercised), opens it, uses every tool, checks undo and
- * redo, exercises the page operations, downloads the result, and confirms the
- * session survives a reload and is gone after "close document".
+ * redo, exercises the page operations, edits the PDF's own text directly and
+ * through find & replace, downloads the result and reads it back to confirm
+ * the replaced wording is really gone, and confirms the session survives a
+ * reload and is gone after "close document".
  *
  * Playwright is not a dependency of the app, so install it on demand:
  *
@@ -41,12 +43,18 @@ async function buildSamplePdf(path) {
     const titles = ["Rental Agreement", "Schedule A — Fees", "Sideways Scan", "Signature Page"];
     for (const [index, title] of titles.entries()) {
         const page = doc.addPage([612, 792]);
-        page.drawText(title, { x: 60, y: 720, size: 24, font: bold, color: rgb(0.35, 0.15, 0.03) });
-        page.drawLine({ start: { x: 60, y: 706 }, end: { x: 552, y: 706 }, thickness: 2, color: rgb(0.95, 0.29, 0.24) });
+        // The sideways page is drawn upside-down in its own user space, the
+        // way a scanner that fed the sheet in backwards writes it. /Rotate 90
+        // shows it sideways; one more quarter turn from the user makes it read
+        // upright at a total of 180°, which is what exercises edit-text and
+        // find & replace in a rotated frame.
+        const flip = index === 2;
+        const at = (x, y) => (flip ? { x: 612 - x, y: 792 - y, rotate: degrees(180) } : { x, y });
+        page.drawText(title, { ...at(60, 720), size: 24, font: bold, color: rgb(0.35, 0.15, 0.03) });
+        page.drawLine({ start: { x: 60, y: flip ? 86 : 706 }, end: { x: 552, y: flip ? 86 : 706 }, thickness: 2, color: rgb(0.95, 0.29, 0.24) });
         for (let line = 0; line < 22; line++) {
             page.drawText(`${line + 1}. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.`, {
-                x: 60,
-                y: 660 - line * 24,
+                ...at(60, 660 - line * 24),
                 size: 11,
                 font,
                 color: rgb(0.2, 0.2, 0.2),
@@ -103,7 +111,7 @@ const canvases = await page.$$eval("[data-page-id] canvas", (els) => els.map((c)
 check("the /Rotate 90 page renders landscape", canvases[2] === "792x612", canvases.slice(0, 4).join(" "));
 
 /* --- text ---------------------------------------------------------------- */
-await tool("Text").click();
+await tool("Add text").click();
 let box = await firstPageBox();
 await page.mouse.click(box.x + 120, box.y + 200);
 await page.waitForTimeout(500);
@@ -113,7 +121,7 @@ await page.keyboard.press("Escape");
 await page.waitForTimeout(300);
 check("text is kept", (await editCount()) === 1, `${await editCount()} edits`);
 
-await tool("Text").click();
+await tool("Add text").click();
 box = await firstPageBox();
 await page.mouse.click(box.x + 300, box.y + 120);
 await page.waitForTimeout(400);
@@ -190,6 +198,59 @@ await page.keyboard.press("Control+z");
 await page.waitForTimeout(600);
 check("undo removes the duplicate", (await page.locator("aside li").count()) === 4);
 
+/* --- editing the document's own text -------------------------------------- */
+await tool("Edit text").click();
+await firstPageBox();
+const line3 = page.locator('[data-page-id]').first().getByRole("button", { name: /^Edit text: 3\. Lorem ipsum/ });
+check("the edit-text tool offers the page's own lines", (await line3.count()) === 1);
+await line3.click();
+await page.waitForTimeout(700);
+const opened = await page.evaluate(() => (document.activeElement instanceof HTMLTextAreaElement ? document.activeElement.value : null));
+check("clicking a line opens it for editing, pre-filled", opened?.startsWith("3. Lorem ipsum dolor sit amet"), String(opened));
+await page.keyboard.press("Control+a");
+await page.keyboard.type("3. Rent is due on the first of each month.");
+await page.keyboard.press("Escape");
+await page.waitForTimeout(300);
+check("the edit is recorded", (await editCount()) === 6, `${await editCount()} edits`);
+
+/* --- shapes ------------------------------------------------------------- */
+await tool("Shapes").click();
+await page.getByRole("button", { name: "Arrow", exact: true }).click();
+box = await firstPageBox();
+await page.mouse.move(box.x + 420, box.y + 560);
+await page.mouse.down();
+await page.mouse.move(box.x + 520, box.y + 500, { steps: 10 });
+await page.mouse.up();
+await page.waitForTimeout(400);
+check("an arrow is drawn by dragging", (await editCount()) === 7, `${await editCount()} edits`);
+check("the arrow is selectable as an annotation", (await page.locator('[role="button"][aria-label="Arrow"]').count()) === 1);
+
+/* --- find & replace ----------------------------------------------------- */
+// Runs after the sideways page was turned upright, so its text is horizontal
+// on screen and must be found and replaced in the rotated frame.
+await page.getByRole("button", { name: /Find & replace/ }).click();
+await page.getByRole("textbox", { name: "Find", exact: true }).fill("consectetur");
+await page.getByRole("textbox", { name: "Replace with" }).fill("CONSECTETUR");
+await page.waitForFunction(() => /\d+ matches on 4 pages/.test(document.querySelector('[role="dialog"]')?.textContent ?? ""), null, { timeout: 15000 });
+const summary = await page.locator('[role="dialog"]').innerText();
+// 22 body lines on each of 4 pages, less the one line already edited above.
+check("find reports every match across the document", /87 matches on 4 pages/.test(summary), summary.match(/\d+ matches[^\n]*/)?.[0]);
+await page.getByRole("button", { name: "Replace all" }).click();
+await page.waitForTimeout(1500);
+check("replace all is a single batch of edits", (await editCount()) === 7 + 87, `${await editCount()} edits`);
+await page.getByRole("button", { name: "Done" }).click();
+await page.keyboard.press("Control+z");
+await page.waitForTimeout(500);
+check("one undo reverses every replacement", (await editCount()) === 7, `${await editCount()} edits`);
+await page.keyboard.press("Control+Shift+z");
+await page.waitForTimeout(500);
+
+/* --- page numbers ------------------------------------------------------- */
+await page.getByRole("button", { name: /Page numbers/ }).click();
+await page.getByRole("button", { name: "Add numbers" }).click();
+await page.waitForTimeout(500);
+check("page numbers are stamped on every page", (await editCount()) === 7 + 87 + 4, `${await editCount()} edits`);
+
 /* --- export -------------------------------------------------------------- */
 const [download] = await Promise.all([
     page.waitForEvent("download", { timeout: 30000 }),
@@ -202,6 +263,24 @@ check(
     download.suggestedFilename() === "sample-edited.pdf" && readFileSync(exported).length > 5000,
     `${readFileSync(exported).length} bytes`,
 );
+
+/* Read the file back: edited wording must be gone from the text layer, not hidden. */
+{
+    const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+    const exportedDoc = await pdfjs.getDocument({ data: new Uint8Array(readFileSync(exported)), useSystemFonts: false }).promise;
+    const texts = [];
+    for (let i = 1; i <= exportedDoc.numPages; i++) {
+        const content = await (await exportedDoc.getPage(i)).getTextContent();
+        texts.push(content.items.map((item) => item.str).join(" "));
+    }
+    const all = texts.join("\n");
+    check("the replaced line's original text is gone from the file", !/(?<!\d)3\. Lorem ipsum/.test(texts[0]), texts[0].slice(0, 160));
+    check("the new wording is in the file", texts[0].includes("Rent is due on the first of each month"));
+    check("find & replace removed the old word everywhere, including the rotated page", !all.includes("consectetur"), `${(all.match(/consectetur/g) ?? []).length} left`);
+    check("…and wrote the new one", (all.match(/CONSECTETUR/g) ?? []).length === 87, `${(all.match(/CONSECTETUR/g) ?? []).length} found`);
+    check("untouched wording survives", (all.match(/adipiscing elit/g) ?? []).length === 87, `${(all.match(/adipiscing elit/g) ?? []).length} found`);
+    check("page numbers are in the file", texts.every((text, i) => text.includes(`Page ${i + 1} of 4`)));
+}
 
 /* --- session persistence ------------------------------------------------- */
 const editsBefore = await editCount();
@@ -216,6 +295,37 @@ check("closing returns to the landing page", await page.getByRole("heading", { l
 await page.reload({ waitUntil: "networkidle" });
 await page.waitForTimeout(1500);
 check("a closed session does not come back", (await page.locator("[data-page-id]").count()) === 0);
+
+/* --- phone-sized screen ---------------------------------------------------- */
+{
+    const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+    const mobile = await phone.newPage();
+    mobile.on("pageerror", (error) => errors.push(`mobile pageerror: ${error.message}`));
+    await mobile.goto(BASE_URL, { waitUntil: "networkidle" });
+    await mobile.setInputFiles('input[type="file"][accept*="pdf"]', samplePath);
+    await mobile.waitForSelector("[data-page-id]", { timeout: 20000 });
+    await mobile.waitForTimeout(2000);
+
+    const overflow = await mobile.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    check("phone: the editor does not scroll sideways", overflow <= 0, `${overflow}px wider`);
+    for (const title of ["Edit text", "Shapes", "Find and replace", "Stamp page numbers"]) {
+        const control = mobile.locator(`button[title^="${title}"]`);
+        const b = await control.boundingBox();
+        check(`phone: "${title}" is on screen`, Boolean(b) && b.x >= 0 && b.x + b.width <= 390, b ? `x ${Math.round(b.x)}` : "missing");
+    }
+
+    await mobile.locator('button[title^="Edit text"]').tap();
+    await mobile.waitForTimeout(1200);
+    await mobile.getByRole("button", { name: /^Edit text: 5\. Lorem/ }).first().tap();
+    await mobile.waitForTimeout(800);
+    check("phone: tapping a line opens it for editing", (await mobile.evaluate(() => document.activeElement?.tagName)) === "TEXTAREA");
+
+    await mobile.keyboard.press("Escape");
+    await mobile.locator('button[title^="Find and replace"]').tap();
+    const dialog = await mobile.locator('[role="dialog"]').boundingBox();
+    check("phone: dialogs fit the screen", dialog && dialog.x >= 0 && dialog.x + dialog.width <= 390, dialog ? `${Math.round(dialog.width)}px wide` : "missing");
+    await phone.close();
+}
 
 await browser.close();
 
