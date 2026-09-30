@@ -67,7 +67,7 @@ export function renderPost({ draft, brief, date, runId }: RenderInput): string {
  */
 function withCtaLink(paragraph: string): string {
     // A trailing path is captured so an article about extraction can send the
-    // reader to /extract rather than to the editor, which is the wrong tool for
+    // reader to /redact (the extraction and redaction workspace) rather than to the editor, which is the wrong tool for
     // it. Without this the link text and the href could disagree.
     return paragraph.replace(/actuallyfreepdfeditor\.com(\/[\w/-]*)?/, (match, path: string | undefined) => `[${match}](${CAPABILITIES.url}${path ?? ""})`);
 }

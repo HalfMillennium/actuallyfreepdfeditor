@@ -37,7 +37,7 @@ export const SCAN_CHAR_THRESHOLD = 96;
  * instead. Fetching the operator list is not free, so this is asked only about
  * pages that already look thin.
  */
-async function paintsImage(page: PDFPageProxy): Promise<boolean> {
+export async function paintsImage(page: PDFPageProxy): Promise<boolean> {
     try {
         const OPS = await getOps();
         const wanted = new Set<number>([OPS.paintImageXObject, OPS.paintImageXObjectRepeat, OPS.paintInlineImageXObject, OPS.paintInlineImageXObjectGroup, OPS.paintImageMaskXObject]);
@@ -72,6 +72,10 @@ export async function readTextLayer(page: PDFPageProxy, pageIndex: number, rotat
         const x = va * e + vc * f + ve;
         const baselineY = vb * e + vd * f + vf;
         const fontSize = Math.hypot(a, b);
+        // The run's x axis on screen: rightward and level means it reads
+        // left to right as displayed, which is what the box above assumes.
+        const ax = va * a + vc * b;
+        const ay = vb * a + vd * b;
 
         items.push({
             text: item.str,
@@ -82,6 +86,8 @@ export async function readTextLayer(page: PDFPageProxy, pageIndex: number, rotat
             width: item.width,
             height: fontSize,
             fontSize,
+            fontFamily: content.styles[item.fontName]?.fontFamily,
+            horizontal: ax > 0 && Math.abs(ay) < 0.05 * ax,
         });
     }
 

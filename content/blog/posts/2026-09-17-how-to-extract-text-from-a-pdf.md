@@ -41,4 +41,4 @@ Check the character count, not the page count. A scanned page with a typed foote
 
 Keep the original. Every extraction is lossy in some direction, and you will want to go back and try a different approach at least once.
 
-[actuallyfreepdfeditor.com/extract](https://actuallyfreepdfeditor.com/extract) opens a PDF in your browser, reports page by page whether it found a real text layer, and reads the pages that have one exactly. Where a page turns out to be a scan it will run OCR on your own machine rather than uploading anything, and exports come out as text, Markdown, CSV or JSON.
+[actuallyfreepdfeditor.com/redact](https://actuallyfreepdfeditor.com/redact) opens a PDF in your browser, reports page by page whether it found a real text layer, and reads the pages that have one exactly. Where a page turns out to be a scan it will run OCR on your own machine rather than uploading anything, and exports come out as text, Markdown, CSV or JSON.

@@ -14,6 +14,14 @@ export interface TextItem {
     width: number;
     height: number;
     fontSize: number;
+    /** Generic family pdf.js reports for the run (serif, sans-serif, monospace), when known. */
+    fontFamily?: string;
+    /**
+     * Whether the run reads left to right, level, as displayed. The box above
+     * is only accurate when it does; rotated or vertical runs get a box that
+     * is the right size but the wrong shape.
+     */
+    horizontal?: boolean;
 }
 
 /** Where a page's text came from. `none` means neither a text layer nor OCR has run. */

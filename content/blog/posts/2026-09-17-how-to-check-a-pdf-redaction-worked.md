@@ -1,6 +1,6 @@
 ---
-title: "How to Check a Redaction Actually Worked"
-dek: "Every serious redaction failure looked correct on screen. Four checks take two minutes and would have caught all of them."
+title: "How to Check If a PDF Is Properly Redacted"
+dek: "Every serious redaction failure looked correct on screen. Two quick tests catch the common one; the rest hides in places you have to go looking for."
 date: "2026-09-17"
 tags: ["redaction", "privacy", "verification"]
 taskIntent: redaction
@@ -9,40 +9,44 @@ generated: false
 runId: "manual-2026-W38"
 ---
 
-The redaction failures that make the news share one property: the file looked right. Black boxes in the correct places, sent in good faith, and the covered text extractable by anyone who selected it or opened the file in a text editor. Nobody in any of those stories was careless about the redaction. They were careless about verifying it, which is a separate task and the only one that produces evidence.
+To check a PDF is properly redacted, select across each black box and copy, then search the document for a word you meant to hide. If either turns anything up, the text is still in the file. Then look in the places those two tests can't see: earlier saved versions, the document's properties, attachments, form fields, and text hidden under scanned pages.
 
-Do these four checks on the file you are about to send, not on the file in the editor.
+Do all of it on the file you're about to send, not the one in your editor.
 
-#### Select the page
+#### The copy-paste test
 
-Open the finished document in a normal viewer. Drag across the black box as though you were selecting text to copy. If anything highlights, the text is still there. Paste it somewhere to see what it says.
+Open the finished PDF in an ordinary viewer. Drag across the black box as though you were selecting text to copy. If anything highlights, the text is still there. Copy it and paste it into a plain text editor to see exactly what leaked.
 
-This catches the most common failure by a wide margin: an annotation or a filled rectangle drawn on top of text that was never removed. It takes five seconds and it is the check almost nobody does.
+This catches the most common failure by a wide margin: a rectangle or comment box drawn on top of text that was never removed. It takes five seconds, and almost nobody does it.
 
-#### Search for the words
+#### The search test
 
-Selection can miss text that a viewer draws but does not offer for selection, so search as well. Use the viewer's find function and type the exact string you removed — the surname, the account number, the address. A hit anywhere in the document, including on a page you did not touch, means the file is not ready.
+Some viewers draw text they won't let you select, so search as well. Press Ctrl+F (Cmd+F on a Mac) and type the exact thing you removed: the surname, the account number, the address. A hit anywhere means the file isn't ready, including on a page you never touched.
 
-Search the whole document rather than the redacted page. Sensitive strings repeat: a name blacked out on page four is often in a header on page nine and in the bookmarks panel.
+Search the whole document, not just the redacted page. Sensitive strings repeat. A name blacked out on page four is often in a header on page nine and in the bookmarks panel.
 
-#### Read the properties
+#### The hidden places
 
-Open the document properties and read every field. Title, author, subject, keywords, producer, and the original filename if your viewer shows it. A PDF exported from a word processor routinely carries the author's full name, and a file called claim-smith-rejected-draft2.pdf discloses plenty before anyone opens it.
+Copy-paste and search only see the current version of the page. A PDF can hold more than that.
 
-Some files also carry XMP metadata and, occasionally, earlier revisions of the document held as incremental updates. If the document matters, a tool that dumps the raw file structure will tell you what is in there; if you do not have one, exporting to a fresh PDF discards most of it.
+Earlier versions come first. Many programs save changes by adding them to the end of the file and leaving the old version in place, so the page before your redaction can still be inside the file you send. A normal viewer won't show it.
 
-#### Check the file got bigger
+Then the properties. Title, author, subject and keywords often name people, and the XMP metadata can carry the original filename and edit history.
 
-This one is a heuristic rather than proof, but it is informative. Genuine removal usually means the affected pages were rebuilt as images, and images are larger than text. If a redacted file is the same size as the original, or smaller, the pages were probably not rebuilt and something was probably only covered.
+Attachments, form fields and bookmarks come next. A filled-in form field can repeat a value you blacked out on the page, and a bookmark title can quote a heading you hid.
 
-The reverse is also worth noting: a file that grew by several megabytes on a two-page redaction is behaving the way real removal behaves.
+Last, scans. A scanned page that's been run through OCR carries an invisible text layer so it can be searched. If someone blacked out a name on the scan image, the OCR text underneath may still spell it out. The copy-paste test usually catches this one, but only if you try it on the scanned page.
+
+#### The limit of checking
+
+A checker can prove text is hidden but recoverable. It can't know what you meant to hide. If a name is still sitting in plain view in paragraph three, every test above passes, because nothing is hidden. Read the document once, start to finish, as the person receiving it.
 
 #### Practical notes
 
-Redaction is irreversible when it works, which means you keep the original somewhere and you send the copy. Name them so the mistake of sending the wrong one is hard to make: the redacted file should be obvious at a glance in a list of attachments.
+Keep the original and send a copy, named so the difference is obvious in a list of attachments.
 
-A flattened page loses selectable text, so a document you have redacted properly is worse to work with afterwards. That is expected. If you need both, keep the working copy for yourself and treat the redacted version as an outbound artefact, not as your file.
+A properly redacted page is often rebuilt as an image, so it can't be selected or searched afterwards and the file gets bigger. That's expected. If a redacted file is exactly the same size as the original, be suspicious.
 
-If the document is heading into a legal proceeding or a statutory disclosure, the standard is not "I am fairly sure". Use a tool built for it, keep a record of what you removed, and do the four checks above on the exact bytes you are handing over.
+If the document is heading into a legal proceeding or a statutory disclosure, use a tool built for that, keep a record of what you removed, and still run these checks on the exact file you hand over.
 
-[actuallyfreepdfeditor.com/extract](https://actuallyfreepdfeditor.com/extract) does the second check on its own output: after removing what you ticked, it re-reads the file it just built and tells you whether any of those strings survived, so the first thing you see is whether it worked rather than whether it looks like it worked.
+[actuallyfreepdfeditor.com/check-redaction](https://actuallyfreepdfeditor.com/check-redaction) runs all of this on any PDF, redacted with any tool: text under boxes, unapplied redaction marks, comment boxes, earlier versions saved in the file, hidden OCR text, metadata, attachments, form fields and bookmarks. It works in your browser, shows what it recovered masked until you ask to see it, and can hand a leaking file to its redaction page to be fixed.

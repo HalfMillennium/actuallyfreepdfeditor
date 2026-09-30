@@ -14,6 +14,9 @@ import type { PageText, PiiKind, PiiMatch, Rect, TextItem } from "./types";
  */
 
 export const PII_KINDS: PiiKind[] = [
+    // Strings /check-redaction recovered from under a cover. Offered for review
+    // like every other match, never pre-ticked.
+    { id: "checker", label: "Found by the redaction checker", severity: "high" },
     { id: "email", label: "Email address", severity: "medium" },
     { id: "phone", label: "Phone number", severity: "medium" },
     { id: "ssn", label: "US Social Security number", severity: "high" },
@@ -179,4 +182,38 @@ function severityRank(kind: string): number {
 
 export function summarisePii(matches: PiiMatch[]): Array<{ kind: PiiKind; count: number }> {
     return PII_KINDS.map((kind) => ({ kind, count: matches.filter((m) => m.kind === kind.id).length })).filter((entry) => entry.count > 0);
+}
+
+/**
+ * Locates exact strings — the ones the redaction checker recovered — as matches.
+ *
+ * Returns the matches plus how many phrases could not be found in the current
+ * text at all (typically text that only survives in an earlier revision of the
+ * file, which any fresh download from here leaves behind anyway).
+ */
+export function findPhrases(pages: PageText[], phrases: string[]): { matches: PiiMatch[]; unmatched: number } {
+    const matches: PiiMatch[] = [];
+    let unmatched = 0;
+
+    for (const phrase of new Set(phrases.map((p) => p.trim()).filter(Boolean))) {
+        let found = false;
+        for (const page of pages) {
+            for (const line of buildLines(page.items)) {
+                let from = 0;
+                for (;;) {
+                    const index = line.text.indexOf(phrase, from);
+                    if (index === -1) break;
+                    const rect = rectFor(line, index, index + phrase.length);
+                    if (rect) {
+                        matches.push({ id: createId("pii"), kind: "checker", text: phrase, pageIndex: page.pageIndex, rect, selected: false });
+                        found = true;
+                    }
+                    from = index + phrase.length;
+                }
+            }
+        }
+        if (!found) unmatched++;
+    }
+
+    return { matches, unmatched };
 }

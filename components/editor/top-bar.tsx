@@ -91,10 +91,10 @@ export function TopBar({ onToggleSidebar, isSidebarOpen, onFitWidth }: Props) {
                     from the landing page — this is where people are when they
                     hit the question the guides answer. */}
                 <Link
-                    href="/extract"
+                    href="/redact"
                     className="hidden shrink-0 rounded-lg px-2 py-1 text-sm font-semibold text-tertiary transition hover:bg-secondary hover:text-secondary lg:block"
                 >
-                    Extract
+                    Redact
                 </Link>
                 <Link
                     href="/blog"

@@ -45,4 +45,4 @@ Run recognition only on the pages that need it. A document with a text layer alr
 
 Keep the scan. Recognition is reproducible, so if an export comes back poor you can rescan or retry with different settings, but only if you still have the picture.
 
-[actuallyfreepdfeditor.com/extract](https://actuallyfreepdfeditor.com/extract) reports which pages carry a text layer and which are pictures, then runs recognition in your browser on only the pages that need it. Nothing is uploaded and there is no page limit, because the work is done by your machine rather than by a server somebody has to pay for.
+[actuallyfreepdfeditor.com/redact](https://actuallyfreepdfeditor.com/redact) reports which pages carry a text layer and which are pictures, then runs recognition in your browser on only the pages that need it. Nothing is uploaded and there is no page limit, because the work is done by your machine rather than by a server somebody has to pay for.

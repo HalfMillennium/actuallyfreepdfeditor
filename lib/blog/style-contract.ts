@@ -33,6 +33,11 @@ export const BANNED_PHRASES = [
     "before it's too late",
     "look no further",
     "we've got you covered",
+    "effortlessly",
+    "cutting-edge",
+    "cutting edge",
+    "peace of mind",
+    "rest assured",
 ] as const;
 
 /** `Whether you're a X or a Y` and sentences opening with `Additionally,`. */

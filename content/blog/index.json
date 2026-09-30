@@ -1,5 +1,29 @@
 [
   {
+    "slug": "how-to-remove-metadata-from-a-pdf",
+    "title": "How to Remove Metadata From a PDF",
+    "dek": "A PDF can carry your name, the software you used, the file's original name and its edit history, none of it visible on the page. Here's where to see it and how to get rid of it.",
+    "date": "2026-09-30",
+    "tags": [
+      "privacy",
+      "metadata",
+      "redaction"
+    ],
+    "taskIntent": "redaction"
+  },
+  {
+    "slug": "why-black-boxes-dont-redact-pdfs",
+    "title": "Why Black Boxes Don't Redact a PDF",
+    "dek": "You drew a black rectangle over the name. The name is still in the file, and anyone who selects the box can copy it back out. Here's why, and the ten-second test that tells you.",
+    "date": "2026-09-30",
+    "tags": [
+      "redaction",
+      "privacy",
+      "verification"
+    ],
+    "taskIntent": "troubleshooting"
+  },
+  {
     "slug": "find-personal-data-in-a-document-before-sending",
     "title": "Find the Personal Data Before You Send It",
     "dek": "The disclosure that causes trouble is almost never the one on page one. A pass for email addresses, card numbers and national IDs takes a minute and catches most of it.",
@@ -13,8 +37,8 @@
   },
   {
     "slug": "how-to-check-a-pdf-redaction-worked",
-    "title": "How to Check a Redaction Actually Worked",
-    "dek": "Every serious redaction failure looked correct on screen. Four checks take two minutes and would have caught all of them.",
+    "title": "How to Check If a PDF Is Properly Redacted",
+    "dek": "Every serious redaction failure looked correct on screen. Two quick tests catch the common one; the rest hides in places you have to go looking for.",
     "date": "2026-09-17",
     "tags": [
       "redaction",

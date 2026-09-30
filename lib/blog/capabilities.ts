@@ -40,7 +40,11 @@ export const CAPABILITIES = {
         "turn a table you draw a box around into CSV or JSON, with the columns worked out from the gaps between the text",
         "find likely personal data — email addresses, phone numbers, card numbers, IBANs, US Social Security numbers, UK National Insurance numbers, UK postcodes, IP addresses and dates of birth — and list every match for review",
         "truly redact ticked matches or a drawn region: the affected pages are rebuilt so the removed text is no longer in the file, and the result is re-read to confirm it is gone",
-        "clear a redacted file's title, author, subject and keywords, so the metadata does not carry what the pages no longer say",
+        "clear a redacted file's title, author, subject, keywords, creator and producer, and leave out its XMP metadata, attachments, bookmarks and earlier saved versions, so the file does not carry what the pages no longer say",
+        "check any PDF, redacted with any tool, for text that can still be pulled out: text under a black or white box, redaction marks that were never applied, boxes added as comments, hidden OCR text under a blacked-out scan, and text left in earlier saved versions inside the file",
+        "list a PDF's metadata (title, author, subject, keywords, creator, producer and XMP fields), attachments, filled-in form field values and bookmark titles, as things to review before sending",
+        "remove a PDF's metadata by saving a fresh copy of its pages without the document properties, XMP metadata, attachments, bookmarks or earlier saved versions, then re-read the copy to confirm the properties are empty",
+        "hand a file the checker found leaking straight to the redaction tool, with the recovered text listed as matches to review",
         "open several files at once and run the same export across all of them",
     ],
     cannot: [
@@ -61,6 +65,10 @@ export const CAPABILITIES = {
         "translate a document",
         "promise it has found every piece of personal data in a document — it matches the patterns listed above and nothing else, so anything unusual has to be selected by hand",
         "redact anything on its own: nothing is removed until it is ticked",
+        "find names, addresses written in a sentence, salaries, medical details or anything else that depends on context — the pattern search only finds fixed-format data",
+        "promise a redacted document is legally compliant, court-ready, or certified for HIPAA, GDPR or any other regime; it is not a substitute for a legal-disclosure tool",
+        "prove a document is safe with a checker pass: a pass means no hidden text was found, not that nothing sensitive is still visible on the page",
+        "keep a redacted page's remaining text selectable or searchable: a page with any redaction on it is rebuilt as an image",
     ],
     constraints: [
         "files up to 100 MB",
@@ -70,7 +78,7 @@ export const CAPABILITIES = {
         "OCR runs on your own processor, so a long scan takes minutes rather than seconds",
         "redacted pages are flattened to images, which makes the file larger and stops the text on those pages being selectable — that is the cost of the text genuinely being gone",
         "edited and replaced text uses Latin characters (Windows-1252); characters outside that set come out as a question mark",
-        "the editor is at the site root; extraction, OCR, table export and redaction are at /extract on the same site",
+        "the editor is at the site root; redaction, plus text and table extraction and OCR, are at /redact (formerly /extract), and the redaction checker is at /check-redaction, all on the same site",
     ],
     url: "https://actuallyfreepdfeditor.com",
 } as const;

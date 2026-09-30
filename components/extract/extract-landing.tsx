@@ -4,43 +4,41 @@ import { type DragEvent, useRef, useState } from "react";
 
 import Link from "next/link";
 
-import { AlertCircle, Columns03, CoinsStacked01, Eye, EyeOff, FileSearch02, Scan, UploadCloud01, WifiOff } from "@untitledui/icons";
+import { AlertCircle, Columns03, CoinsStacked01, Eye, FileSearch02, Scan, ShieldTick, UploadCloud01, WifiOff } from "@untitledui/icons";
 
 import { LoadingIndicator } from "@/components/application/loading-indicator/loading-indicator";
 import { Button } from "@/components/base/buttons/button";
 import { cx } from "@/utils/cx";
 
 import { Wordmark } from "@/components/editor/wordmark";
+import { Faq } from "@/components/seo/faq";
+import { REDACT_DEFINITION, REDACT_FAQ } from "@/lib/redaction-copy";
 
 import { useExtract } from "./extract-context";
 
-const STEPS = [
+const HOW_IT_WORKS = [
+    { title: "Open your PDF", body: "Drop it in. It's read by this tab, not sent anywhere." },
     {
-        icon: FileSearch02,
-        title: "Finds the text that is already there",
-        body: "Most PDFs carry a text layer. Where one exists it is read directly, which is exact and instant — no OCR guesswork over text a machine already wrote.",
+        title: "Pick what goes",
+        body: "Search for fixed-format data like emails, card numbers and IBANs, or draw a box over anything else. Tick each thing that should go. Nothing is removed until you do.",
     },
     {
-        icon: Scan,
-        title: "Reads the scanned pages too",
-        body: "Pages with no text layer are flagged, and OCR runs in your browser on just those pages. Nothing is uploaded to a recognition service.",
-    },
-    {
-        icon: Columns03,
-        title: "Turns a table into CSV or JSON",
-        body: "Drag a box around a table and column boundaries are worked out from the gaps in the text. Export it as CSV, JSON, Markdown or plain text.",
-    },
-    {
-        icon: EyeOff,
-        title: "Removes what should not be there",
-        body: "Email addresses, card numbers, national IDs and more are found and listed for you to review. Redaction rebuilds the page so the text is gone, not covered.",
+        title: "Download",
+        body: "The pages you redacted are rebuilt so the text is gone. Then we re-read the file and tell you if anything you ticked survived.",
     },
 ];
 
+/** The rest of what the same engine does. Kept, but secondary on this page. */
+const ALSO = [
+    { icon: FileSearch02, title: "Copy the text out", body: "Export a PDF's own text as plain text or Markdown, in reading order." },
+    { icon: Scan, title: "Read scanned pages", body: "Pages with no text layer are flagged, and OCR runs in your browser on just those." },
+    { icon: Columns03, title: "Turn a table into CSV", body: "Drag a box round a table and export it as CSV, JSON or Markdown." },
+];
+
 const PROMISES = [
-    { icon: WifiOff, title: "This file never leaves your device", body: "Every step runs in this tab. There is no upload, no queue, no processing server." },
-    { icon: CoinsStacked01, title: "No per-page pricing", body: "Because nothing runs on our machines, extracting a thousand pages costs us nothing and costs you nothing." },
-    { icon: Eye, title: "Nothing is auto-redacted", body: "Suspected personal data is highlighted and left alone until you tick it. You decide what goes." },
+    { icon: WifiOff, title: "Nothing is uploaded", body: "Every step runs in this tab. There is no upload, no queue, no processing server." },
+    { icon: CoinsStacked01, title: "No limits, no account", body: "Nothing runs on our machines, so there's no daily cap, no sign-up and no watermark." },
+    { icon: Eye, title: "You tick every item", body: "Matches are highlighted and left alone until you tick them. You decide what goes." },
 ];
 
 export function ExtractLanding() {
@@ -73,6 +71,12 @@ export function ExtractLanding() {
                             Editor
                         </Link>
                         <Link
+                            href="/check-redaction"
+                            className="rounded-lg px-3 py-1.5 text-sm font-semibold text-tertiary transition hover:bg-secondary hover:text-secondary max-sm:hidden"
+                        >
+                            Check a redaction
+                        </Link>
+                        <Link
                             href="/blog"
                             className="rounded-lg px-3 py-1.5 text-sm font-semibold text-tertiary transition hover:bg-secondary hover:text-secondary"
                         >
@@ -82,11 +86,11 @@ export function ExtractLanding() {
                 </nav>
 
                 <h1 className="max-w-2xl text-center text-display-sm font-semibold tracking-tight text-balance text-primary sm:text-display-md">
-                    Turn PDFs into data, <span className="text-gradient-warm">locally</span>
+                    Redact a PDF <span className="text-gradient-warm">(properly)</span>
                 </h1>
                 <p className="mt-4 max-w-xl text-center text-lg text-balance text-tertiary">
-                    Pull text and tables out of a PDF, run OCR on the scanned pages, find the personal data hiding in it and redact it for good. All of it
-                    happens inside this browser tab.
+                    Most free tools draw a black box and call it done. The text is still under there, and anyone can copy it out. This one deletes it,
+                    then checks.
                 </p>
 
                 {/* ---------------------------------------------------------- */}
@@ -114,8 +118,8 @@ export function ExtractLanding() {
                                 <UploadCloud01 className="size-6 text-fg-brand-primary" />
                             </span>
                             <div>
-                                <p className="text-lg font-semibold text-primary">Drop your PDFs here</p>
-                                <p className="mt-1 text-sm text-tertiary">Drop several at once to run the same job across all of them.</p>
+                                <p className="text-lg font-semibold text-primary">Drop your PDF here</p>
+                                <p className="mt-1 text-sm text-tertiary">Your file stays in this tab. Nothing is uploaded.</p>
                             </div>
                             <Button size="lg" color="primary" onClick={() => inputRef.current?.click()}>
                                 Choose files
@@ -145,17 +149,54 @@ export function ExtractLanding() {
 
                 {/* ---------------------------------------------------------- */}
 
-                <div className="mt-16 grid w-full gap-6 sm:grid-cols-2">
-                    {STEPS.map(({ icon: Icon, title, body }) => (
-                        <div key={title} className="rounded-xl border border-secondary bg-primary p-5">
-                            <span className="flex size-9 items-center justify-center rounded-lg bg-brand-primary">
+                <blockquote className="mt-14 w-full max-w-2xl rounded-xl border-l-4 border-brand bg-secondary px-5 py-4 text-md text-secondary">
+                    {REDACT_DEFINITION}
+                </blockquote>
+
+                <section className="mt-14 w-full" aria-labelledby="how-heading">
+                    <h2 id="how-heading" className="text-lg font-semibold text-primary">
+                        How it works
+                    </h2>
+                    <ol className="mt-4 grid gap-4 sm:grid-cols-3">
+                        {HOW_IT_WORKS.map((step, index) => (
+                            <li key={step.title} className="rounded-xl border border-secondary bg-primary p-5">
+                                <span className="flex size-8 items-center justify-center rounded-full bg-brand-primary text-sm font-semibold text-brand-secondary">
+                                    {index + 1}
+                                </span>
+                                <h3 className="mt-3 text-md font-semibold text-primary">{step.title}</h3>
+                                <p className="mt-1 text-sm text-tertiary">{step.body}</p>
+                            </li>
+                        ))}
+                    </ol>
+                </section>
+
+                <Link
+                    href="/check-redaction"
+                    className="mt-8 flex w-full items-center gap-4 rounded-xl border border-secondary bg-primary p-5 transition hover:border-brand hover:bg-brand-primary"
+                >
+                    <ShieldTick className="size-6 shrink-0 text-fg-brand-primary" />
+                    <span>
+                        <span className="block text-md font-semibold text-primary">Already redacted it somewhere else?</span>
+                        <span className="mt-0.5 block text-sm text-tertiary">
+                            Run it through the checker. It looks for text still hiding under the boxes, old revisions and metadata.
+                        </span>
+                    </span>
+                </Link>
+
+                <section className="mt-14 w-full" aria-labelledby="also-heading">
+                    <h2 id="also-heading" className="text-lg font-semibold text-primary">
+                        Also in here
+                    </h2>
+                    <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                        {ALSO.map(({ icon: Icon, title, body }) => (
+                            <div key={title} className="rounded-xl border border-secondary bg-primary p-5">
                                 <Icon className="size-5 text-fg-brand-primary" />
-                            </span>
-                            <h2 className="mt-3 text-md font-semibold text-primary">{title}</h2>
-                            <p className="mt-1 text-sm text-tertiary">{body}</p>
-                        </div>
-                    ))}
-                </div>
+                                <h3 className="mt-3 text-sm font-semibold text-primary">{title}</h3>
+                                <p className="mt-1 text-sm text-tertiary">{body}</p>
+                            </div>
+                        ))}
+                    </div>
+                </section>
 
                 <div className="mt-10 grid w-full gap-6 border-t border-secondary pt-10 sm:grid-cols-3">
                     {PROMISES.map(({ icon: Icon, title, body }) => (
@@ -165,6 +206,10 @@ export function ExtractLanding() {
                             <p className="mt-1 text-sm text-tertiary">{body}</p>
                         </div>
                     ))}
+                </div>
+
+                <div className="mt-14 w-full">
+                    <Faq entries={REDACT_FAQ} />
                 </div>
             </div>
         </main>

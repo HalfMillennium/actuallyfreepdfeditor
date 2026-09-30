@@ -1,0 +1,26 @@
+# actuallyfreepdfeditor
+
+> Free PDF tools that run entirely in the browser. Files are opened, edited and saved by the user's own browser tab and are never uploaded. No account, no watermark, no usage limits, no paid tier.
+
+## Tools
+
+- [PDF editor](https://actuallyfreepdfeditor.com/): Edit the text already in a PDF (the old words are removed from the file, not covered), find and replace across pages, add text, sign, highlight, white-out, draw shapes and arrows, add page or Bates numbers, and reorder, rotate, duplicate or delete pages.
+- [Redact a PDF](https://actuallyfreepdfeditor.com/redact): Find fixed-format personal data (emails, phone numbers, card numbers, IBANs, US SSNs, UK National Insurance numbers, UK postcodes, IP addresses, dates of birth) or draw boxes, tick what should go, and download a file where that text is removed rather than covered; the output is re-read to confirm. Redacted pages are rebuilt as images. The same page also exports text and tables (TXT, Markdown, CSV, JSON) and runs OCR on scanned pages.
+- [Check a redaction](https://actuallyfreepdfeditor.com/check-redaction): Checks any PDF, redacted with any tool, for text that can still be pulled out: text under black or white boxes, unapplied redaction marks, boxes added as comments, hidden OCR text under blacked-out scans, and text left in earlier saved versions. Also lists metadata, attachments, form field values and bookmarks, and can save a copy without the metadata. A pass means no hidden text was found, not that nothing sensitive is visible.
+
+## What these tools do not do
+
+- They do not find names, addresses in prose, salaries or other context-dependent information automatically; the user reviews and ticks every item.
+- Redaction output is not certified for legal, HIPAA or GDPR purposes and is not a substitute for a legal-disclosure tool.
+
+## Guides
+
+- [Why black boxes don't redact a PDF](https://actuallyfreepdfeditor.com/blog/why-black-boxes-dont-redact-pdfs)
+- [How to check if a PDF is properly redacted](https://actuallyfreepdfeditor.com/blog/how-to-check-a-pdf-redaction-worked)
+- [How to remove metadata from a PDF](https://actuallyfreepdfeditor.com/blog/how-to-remove-metadata-from-a-pdf)
+- [How to black out information in a PDF](https://actuallyfreepdfeditor.com/blog/how-to-black-out-information-in-a-pdf)
+- [Find personal data in a document before sending it](https://actuallyfreepdfeditor.com/blog/find-personal-data-in-a-document-before-sending)
+- [How to extract text from a PDF](https://actuallyfreepdfeditor.com/blog/how-to-extract-text-from-a-pdf)
+- [How to convert a PDF table to CSV](https://actuallyfreepdfeditor.com/blog/how-to-convert-a-pdf-table-to-csv)
+- [OCR a scanned PDF without uploading it](https://actuallyfreepdfeditor.com/blog/ocr-a-scanned-pdf-without-uploading-it)
+- [All guides](https://actuallyfreepdfeditor.com/blog) — also available as an [RSS feed](https://actuallyfreepdfeditor.com/feed.xml)

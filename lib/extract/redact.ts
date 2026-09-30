@@ -1,6 +1,6 @@
 "use client";
 
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, PDFName } from "pdf-lib";
 import type { PDFDocumentProxy } from "pdfjs-dist";
 
 import { renderPage } from "@/lib/pdf-document";
@@ -52,7 +52,10 @@ export async function redactToPdf({
 }: RedactionInput): Promise<Uint8Array> {
     // pdf.js detaches buffers it is handed, so pdf-lib gets its own copy.
     const source = await PDFDocument.load(sourceBytes.slice(0), { ignoreEncryption: true });
-    const out = await PDFDocument.create();
+    // `updateMetadata: false`: without it pdf-lib stamps its own producer and
+    // timestamps on the output, and a redacted file should say nothing at all
+    // about where it came from (see the metadata note at the end).
+    const out = await PDFDocument.create({ updateMetadata: false });
 
     const pageCount = source.getPageCount();
     const copied = await out.copyPages(source, Array.from({ length: pageCount }, (_, i) => i));
@@ -110,12 +113,15 @@ export async function redactToPdf({
     // Metadata travels with a document and routinely names the author, the
     // software and the original filename. A page that says nothing can still
     // say plenty in its properties.
-    out.setTitle("");
-    out.setAuthor("");
-    out.setSubject("");
-    out.setKeywords([]);
-    out.setProducer("actuallyfreepdfeditor");
-    out.setCreator("actuallyfreepdfeditor");
+    //
+    // The output is a new document, so the source's info dictionary, XMP
+    // stream, attachments, bookmarks and earlier revisions are never copied
+    // in the first place. Page-level metadata does travel with a page, so it
+    // is dropped here.
+    for (const page of out.getPages()) {
+        page.node.delete(PDFName.of("Metadata"));
+        page.node.delete(PDFName.of("PieceInfo"));
+    }
 
     return out.save();
 }

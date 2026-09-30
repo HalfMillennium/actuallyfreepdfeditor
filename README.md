@@ -41,6 +41,8 @@ npm run dev          # http://localhost:3000
 npm run type-check
 npm run verify:geometry   # export coordinate maths, checked against pdf.js
 npm run verify:text-edit  # edit-text really removes glyphs, and nothing else moves
+npm run verify:posts      # the blog precheck, applied to hand-written posts
+npm run verify:redaction-check  # checker fixtures + the redact round-trip (browser; see header)
 npm run verify:blog       # pipeline gates, prechecks, RSS parsing, ISO weeks
 npm run verify:e2e        # full browser run-through (see script header for setup)
 
@@ -73,6 +75,22 @@ When it can't vouch for a region — unknown font widths, text inside a form
 XObject, invisible OCR text over a scan — it falls back to painting the old
 line out, as the preview does. The failure mode is "covered", never "shifted".
 
+## Redaction, and checking a redaction
+
+`/redact` (formerly `/extract`, which 308-redirects) finds fixed-format
+personal data, lets you tick what goes, rebuilds each affected page as an image
+so the text is gone, and re-reads the output to prove it. The same workspace
+still exports text and tables and runs OCR.
+
+`/check-redaction` takes any PDF, redacted by anything, and looks for text that
+can still be pulled out (`lib/redaction-check/check.ts`): flat pixels where the
+text layer says there are glyphs, unapplied `Redact` annotations, comment-type
+boxes over text, text in earlier incremental revisions, plus metadata,
+attachments, form values and bookmarks as warnings. A failing file can be
+handed to `/redact` with the recovered strings listed for review, and
+`/redact`'s output can be handed back for a second opinion — in memory, never
+uploaded (`lib/redaction-check/handoff.ts`).
+
 ## How it fits together
 
 ```
@@ -85,6 +103,8 @@ lib/
   session-storage.ts  localStorage + IndexedDB, with a 24-hour lifetime
   text-edit/        existing-text editing: line detection, content-stream
                     tokenizer, glyph removal, font metrics
+  extract/          text layer, OCR, tables, PII patterns, flattening redaction
+  redaction-check/  the checker, metadata stripping, the /redact handoff
 components/
   editor/           the app
   base/ application/ foundations/   Untitled UI React (MIT), vendored

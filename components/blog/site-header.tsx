@@ -19,8 +19,14 @@ export function SiteHeader({ className }: { className?: string }) {
                 </Link>
 
                 <nav className="flex items-center gap-1 text-sm font-semibold">
-                    <Link href="/extract" className="rounded-lg px-3 py-1.5 text-tertiary transition hover:bg-secondary hover:text-secondary max-sm:hidden">
-                        Extract
+                    <Link href="/redact" className="rounded-lg px-3 py-1.5 text-tertiary transition hover:bg-secondary hover:text-secondary max-sm:hidden">
+                        Redact
+                    </Link>
+                    <Link
+                        href="/check-redaction"
+                        className="rounded-lg px-3 py-1.5 text-tertiary transition hover:bg-secondary hover:text-secondary max-md:hidden"
+                    >
+                        Check a redaction
                     </Link>
                     <Link href="/blog" className="rounded-lg px-3 py-1.5 text-tertiary transition hover:bg-secondary hover:text-secondary">
                         Guides

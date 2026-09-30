@@ -83,7 +83,7 @@ export const BACKLOG: BacklogEntry[] = [
     { id: "bl-059", query: "how to sign a pdf twice for two people", intent: "signing", volume: "low", used: false },
     { id: "bl-060", query: "how to add a date stamp to a scanned form", intent: "add-text", volume: "low", used: false },
 
-    /* Extraction and privacy cleanup — the /extract surface. */
+    /* Extraction and privacy cleanup — the /redact workspace (formerly /extract). */
     { id: "bl-061", query: "how to extract text from a pdf", intent: "data-extraction", volume: "high", used: true, usedInRun: "manual-2026-W38" },
     { id: "bl-062", query: "how to convert a pdf table to csv", intent: "data-extraction", volume: "high", used: true, usedInRun: "manual-2026-W38" },
     { id: "bl-063", query: "how to ocr a pdf without uploading it", intent: "data-extraction", volume: "high", used: true, usedInRun: "manual-2026-W38" },
@@ -94,6 +94,14 @@ export const BACKLOG: BacklogEntry[] = [
     { id: "bl-068", query: "how to extract data from hundreds of invoices", intent: "data-extraction", volume: "medium", used: false },
     { id: "bl-069", query: "free ocr that does not upload your files", intent: "data-extraction", volume: "medium", used: false },
     { id: "bl-070", query: "how to get a bank statement into a spreadsheet", intent: "data-extraction", volume: "high", used: false },
+
+    /* The redaction-verification cluster: /check-redaction and its guides. */
+    { id: "bl-071", query: "black box in pdf not hiding text", intent: "redaction", volume: "medium", used: true, usedInRun: "manual-2026-W40" },
+    { id: "bl-072", query: "redacted pdf copy paste reveals text", intent: "redaction", volume: "medium", used: true, usedInRun: "manual-2026-W40" },
+    { id: "bl-073", query: "how to remove metadata from a pdf", intent: "redaction", volume: "high", used: true, usedInRun: "manual-2026-W40" },
+    { id: "bl-074", query: "remove author name from pdf", intent: "redaction", volume: "medium", used: true, usedInRun: "manual-2026-W40" },
+    { id: "bl-075", query: "how to tell if a pdf is properly redacted", intent: "redaction", volume: "medium", used: true, usedInRun: "manual-2026-W40" },
+    { id: "bl-076", query: "test pdf redaction", intent: "redaction", volume: "low", used: true, usedInRun: "manual-2026-W40" },
 ];
 
 export function unusedBacklog(limit = 12): BacklogEntry[] {

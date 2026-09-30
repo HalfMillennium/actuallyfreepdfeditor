@@ -131,8 +131,13 @@ page.on("response", (response) => {
     if (response.status() === 404 && !EXPECTED_OFF_PLATFORM.test(response.url())) errors.push(`404: ${response.url()}`);
 });
 
-await page.goto(`${BASE_URL}/extract`, { waitUntil: "networkidle" });
-check("the workspace landing renders", (await page.title()).toLowerCase().includes("extract"));
+// The workspace moved from /extract to /redact; the old URL must keep working.
+{
+    const response = await fetch(`${BASE_URL}/extract`, { redirect: "manual" });
+    check("/extract permanently redirects to /redact", response.status === 308 && new URL(response.headers.get("location"), BASE_URL).pathname === "/redact", `${response.status} → ${response.headers.get("location")}`);
+}
+await page.goto(`${BASE_URL}/redact`, { waitUntil: "networkidle" });
+check("the workspace landing renders", (await page.title()).toLowerCase().includes("redact"));
 
 await page.setInputFiles('input[type="file"][accept*="pdf"]', samplePath);
 await page.waitForSelector("[data-extract-page]", { timeout: 20000 });

@@ -45,4 +45,4 @@ Check the metadata as well as the pages. Author name, the software that produced
 
 When you are sending a batch, do the pass on every file rather than the first one. Documents from the same source are usually laid out the same way, which means they hide the same field in the same place, on every one of them.
 
-[actuallyfreepdfeditor.com/extract](https://actuallyfreepdfeditor.com/extract) reads a document in your browser, highlights every match for those patterns in place, and leaves all of them alone until you tick the ones that are real. What you tick is removed rather than covered, and the result is re-read afterwards to confirm the text is gone.
+[actuallyfreepdfeditor.com/redact](https://actuallyfreepdfeditor.com/redact) reads a document in your browser, highlights every match for those patterns in place, and leaves all of them alone until you tick the ones that are real. What you tick is removed rather than covered, and the result is re-read afterwards to confirm the text is gone.

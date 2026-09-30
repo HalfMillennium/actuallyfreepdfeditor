@@ -2,13 +2,15 @@
 
 import { useMemo, useState } from "react";
 
-import { AlertCircle, CheckCircle, EyeOff, Shield01 } from "@untitledui/icons";
+import { AlertCircle, CheckCircle, EyeOff, Shield01, ShieldTick } from "@untitledui/icons";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/base/buttons/button";
 import { downloadBytes } from "@/lib/extract/export";
 import { PII_KINDS, summarisePii } from "@/lib/extract/pii";
 import type { Rect } from "@/lib/extract/types";
 import { loadPdf } from "@/lib/pdf-document";
+import { handOff } from "@/lib/redaction-check/handoff";
 import type { Rotation } from "@/lib/types";
 import { cx } from "@/utils/cx";
 
@@ -32,6 +34,8 @@ export function PiiPanel() {
     const [includeRegions, setIncludeRegions] = useState(false);
     const [state, setState] = useState<"idle" | "working" | "done" | "failed">("idle");
     const [note, setNote] = useState<string | null>(null);
+    const [output, setOutput] = useState<{ bytes: Uint8Array; name: string } | null>(null);
+    const router = useRouter();
 
     const summary = useMemo(() => (active ? summarisePii(active.pii) : []), [active]);
     const selected = useMemo(() => (active ? active.pii.filter((match) => match.selected) : []), [active]);
@@ -39,10 +43,14 @@ export function PiiPanel() {
     if (!active) return null;
 
     const totalRedactions = selected.length + (includeRegions ? regions.length : 0);
+    // A file from the checker whose leaked text lives only in an old revision
+    // has nothing on the page to tick; a fresh copy is itself the fix.
+    const cleanCopyOnly = totalRedactions === 0 && (active.fromChecker?.unmatched ?? 0) > 0;
 
     const redact = async () => {
         setState("working");
         setNote(null);
+        setOutput(null);
 
         try {
             const rects = new Map<number, Rect[]>();
@@ -78,10 +86,14 @@ export function PiiPanel() {
                 return;
             }
 
-            downloadBytes(bytes, `${active.fileName.replace(/\.pdf$/i, "")}-redacted.pdf`);
+            const name = `${active.fileName.replace(/\.pdf$/i, "")}-redacted.pdf`;
+            downloadBytes(bytes, name);
+            setOutput({ bytes, name });
             setState("done");
             setNote(
-                `${totalRedactions} ${totalRedactions === 1 ? "item" : "items"} removed and verified gone. The redacted pages were rebuilt as images, so the text underneath no longer exists.`,
+                totalRedactions === 0
+                    ? "A fresh copy was saved. Earlier versions of the file, its metadata and attachments were left behind."
+                    : `${totalRedactions} ${totalRedactions === 1 ? "item" : "items"} removed and verified gone. The redacted pages were rebuilt as images, so the text underneath no longer exists.`,
             );
         } catch (cause) {
             console.error("Redaction failed", cause);
@@ -96,6 +108,14 @@ export function PiiPanel() {
                 <Shield01 className="size-4 text-fg-brand-primary" />
                 Personal data
             </h2>
+
+            {active.fromChecker && (
+                <p data-from-checker className="mt-2 rounded-lg bg-brand-primary px-2.5 py-2 text-xs text-secondary">
+                    The checker&rsquo;s findings are listed below as &ldquo;Found by the redaction checker&rdquo;. Tick the ones to remove.
+                    {active.fromChecker.unmatched > 0 &&
+                        ` ${active.fromChecker.unmatched} ${active.fromChecker.unmatched === 1 ? "item is" : "items are"} only in an older version of the file; any download from here is a fresh file without ${active.fromChecker.unmatched === 1 ? "it" : "them"}.`}
+                </p>
+            )}
 
             {active.pii.length === 0 ? (
                 <p className="mt-2 text-xs text-tertiary">
@@ -175,12 +195,12 @@ export function PiiPanel() {
                 color="primary"
                 iconLeading={EyeOff}
                 className="mt-3 w-full"
-                isDisabled={totalRedactions === 0}
+                isDisabled={totalRedactions === 0 && !cleanCopyOnly}
                 isLoading={state === "working"}
                 showTextWhileLoading
                 onClick={() => void redact()}
             >
-                Redact {totalRedactions > 0 ? totalRedactions : ""} and download
+                {cleanCopyOnly ? "Download a clean copy" : `Redact ${totalRedactions > 0 ? totalRedactions : ""} and download`}
             </Button>
 
             {note && (
@@ -191,6 +211,20 @@ export function PiiPanel() {
                     {state === "failed" ? <AlertCircle className="mt-px size-3.5 shrink-0" /> : <CheckCircle className="mt-px size-3.5 shrink-0" />}
                     {note}
                 </p>
+            )}
+
+            {state === "done" && output && (
+                <button
+                    type="button"
+                    onClick={() => {
+                        handOff({ kind: "check", file: new File([new Uint8Array(output.bytes)], output.name, { type: "application/pdf" }) });
+                        router.push("/check-redaction");
+                    }}
+                    className="mt-2 flex w-full cursor-pointer items-center gap-2 rounded-lg border border-secondary px-2.5 py-2 text-left text-xs font-semibold text-brand-secondary transition hover:bg-secondary"
+                >
+                    <ShieldTick className="size-4 shrink-0" />
+                    Want a second opinion? Run it through the checker.
+                </button>
             )}
 
             <p className="mt-3 text-xs text-tertiary">

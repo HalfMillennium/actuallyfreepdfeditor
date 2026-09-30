@@ -17,12 +17,18 @@ export function SiteFooter() {
 
                 <nav className="flex gap-10 text-sm">
                     <div className="flex flex-col gap-2">
-                        <span className="text-xs font-semibold tracking-wide text-quaternary uppercase">Editor</span>
+                        <span className="text-xs font-semibold tracking-wide text-quaternary uppercase">Tools</span>
                         <Link href="/" className="text-tertiary transition hover:text-secondary">
-                            Open a PDF
+                            Edit a PDF
                         </Link>
-                        <Link href="/extract" className="text-tertiary transition hover:text-secondary">
-                            Extract &amp; redact
+                        <Link href="/redact" className="text-tertiary transition hover:text-secondary">
+                            Redact a PDF
+                        </Link>
+                        <Link href="/check-redaction" className="text-tertiary transition hover:text-secondary">
+                            Check a redaction
+                        </Link>
+                        <Link href="/redact" className="text-tertiary transition hover:text-secondary">
+                            Extract text &amp; tables
                         </Link>
                     </div>
                     <div className="flex flex-col gap-2">

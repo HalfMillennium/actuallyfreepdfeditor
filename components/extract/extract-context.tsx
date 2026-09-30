@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
+import { type ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 import type { PDFDocumentProxy } from "pdfjs-dist";
 
@@ -9,7 +9,8 @@ import { loadPdf, PasswordProtectedError } from "@/lib/pdf-document";
 import type { Rotation, SourcePageSize } from "@/lib/types";
 import { totalRotation } from "@/lib/types";
 
-import { findPii } from "@/lib/extract/pii";
+import { findPhrases, findPii } from "@/lib/extract/pii";
+import { takeHandoff } from "@/lib/redaction-check/handoff";
 import { surveyDocument } from "@/lib/extract/text-layer";
 import type { ExtractedDocument, PageText, PiiMatch, Region } from "@/lib/extract/types";
 
@@ -34,6 +35,12 @@ export interface LoadedFile {
     error?: string;
     /** 0-1 while OCR runs. */
     ocrProgress?: number;
+    /**
+     * Set when the file arrived from /check-redaction: how many recovered
+     * strings are not in the current text at all (i.e. only in an old
+     * revision, which a fresh download leaves behind).
+     */
+    fromChecker?: { unmatched: number };
 }
 
 interface ExtractContextValue {
@@ -43,7 +50,7 @@ interface ExtractContextValue {
     regions: Region[];
     busy: boolean;
     error: string | null;
-    addFiles: (files: File[]) => Promise<void>;
+    addFiles: (files: File[], options?: { phrases?: string[] }) => Promise<void>;
     setActiveId: (id: string) => void;
     removeFile: (id: string) => void;
     clearAll: () => void;
@@ -82,7 +89,7 @@ export function ExtractProvider({ children }: { children: ReactNode }) {
         setFiles((current) => current.map((file) => (file.id === id ? { ...file, ...update } : file)));
     }, []);
 
-    const addFiles = useCallback(async (incoming: File[]) => {
+    const addFiles = useCallback(async (incoming: File[], options: { phrases?: string[] } = {}) => {
         setError(null);
         setBusy(true);
 
@@ -113,6 +120,8 @@ export function ExtractProvider({ children }: { children: ReactNode }) {
                         complete: pages.every((page) => page.source !== "none"),
                     };
 
+                    const fromChecker = options.phrases ? findPhrases(pages, options.phrases) : null;
+
                     const loaded: LoadedFile = {
                         id,
                         fileName: file.name,
@@ -120,8 +129,9 @@ export function ExtractProvider({ children }: { children: ReactNode }) {
                         pdf: proxy,
                         sizes,
                         document,
-                        pii: findPii(pages),
+                        pii: [...(fromChecker?.matches ?? []), ...findPii(pages)],
                         status: "ready",
+                        ...(fromChecker ? { fromChecker: { unmatched: fromChecker.unmatched } } : {}),
                     };
 
                     setFiles((current) => [...current, loaded]);
@@ -138,6 +148,15 @@ export function ExtractProvider({ children }: { children: ReactNode }) {
             setBusy(false);
         }
     }, []);
+
+    /* A file handed over by the redaction checker's "Fix it" button. */
+    const handoffTaken = useRef(false);
+    useEffect(() => {
+        if (handoffTaken.current) return;
+        handoffTaken.current = true;
+        const handoff = takeHandoff("redact");
+        if (handoff) void addFiles([handoff.file], { phrases: handoff.phrases });
+    }, [addFiles]);
 
     const removeFile = useCallback((id: string) => {
         setFiles((current) => {
@@ -164,8 +183,8 @@ export function ExtractProvider({ children }: { children: ReactNode }) {
                     const merged = file.document.pages.map((existing) => pages.find((page) => page.pageIndex === existing.pageIndex) ?? existing);
                     const document = { ...file.document, pages: merged, complete: merged.every((page) => page.source !== "none") };
                     // Re-scan for PII: text that only OCR could read may well be
-                    // the sensitive part.
-                    return { ...file, document, pii: findPii(merged) };
+                    // the sensitive part. Checker matches are kept as they were.
+                    return { ...file, document, pii: [...file.pii.filter((m) => m.kind === "checker"), ...findPii(merged)] };
                 }),
             );
         },

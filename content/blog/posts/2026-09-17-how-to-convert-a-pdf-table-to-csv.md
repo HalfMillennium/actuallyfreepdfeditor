@@ -43,4 +43,4 @@ Bank statements and invoices are the two documents people extract most, and both
 
 If the table is an image — a screenshot pasted into a document, or a scanned page — OCR has to read it first, and OCR does not preserve column positions as reliably as a text layer does. Expect to check that output more carefully.
 
-[actuallyfreepdfeditor.com/extract](https://actuallyfreepdfeditor.com/extract) lets you drag a box around a table in your browser and works the columns out from the gaps that recur across its rows, then exports CSV, JSON or a Markdown table. The file stays on your machine, so a statement full of account numbers is not uploaded to work out where its columns are.
+[actuallyfreepdfeditor.com/redact](https://actuallyfreepdfeditor.com/redact) lets you drag a box around a table in your browser and works the columns out from the gaps that recur across its rows, then exports CSV, JSON or a Markdown table. The file stays on your machine, so a statement full of account numbers is not uploaded to work out where its columns are.

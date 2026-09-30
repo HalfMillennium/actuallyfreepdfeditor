@@ -4,7 +4,7 @@ import { type DragEvent, useRef, useState } from "react";
 
 import Link from "next/link";
 
-import { AlertCircle, Brush01, CoinsStacked01, Edit05, Eye, FileX02, PenTool02, UploadCloud01, WifiOff } from "@untitledui/icons";
+import { AlertCircle, Brush01, CoinsStacked01, Edit05, Eye, FileX02, PenTool02, Shield01, ShieldTick, UploadCloud01, WifiOff } from "@untitledui/icons";
 
 import { Button } from "@/components/base/buttons/button";
 import { LoadingIndicator } from "@/components/application/loading-indicator/loading-indicator";
@@ -18,6 +18,23 @@ const CAPABILITIES = [
     { icon: PenTool02, title: "Add text & sign", body: "Type anywhere on the page, or draw, type or upload your signature." },
     { icon: Brush01, title: "Mark it up", body: "Highlight, white-out, draw, add boxes and arrows, and stamp page or Bates numbers." },
     { icon: FileX02, title: "Rearrange pages", body: "Reorder, rotate, duplicate and delete pages, then download the result." },
+];
+
+const TOOLS = [
+    {
+        icon: Shield01,
+        href: "/redact",
+        title: "Redact a PDF (properly)",
+        body: "Find emails, card numbers and ID numbers, tick what goes, and the text is removed, not covered. Also pulls out text and tables, and reads scans.",
+        cta: "Redact a PDF",
+    },
+    {
+        icon: ShieldTick,
+        href: "/check-redaction",
+        title: "Check a redaction",
+        body: "Drop in a PDF someone already redacted, with any tool. We look for text still hiding under the boxes, old versions and metadata.",
+        cta: "Check a file",
+    },
 ];
 
 const PROMISES = [
@@ -60,10 +77,10 @@ export function Landing({ latestGuides = [] }: { latestGuides?: GuideLink[] }) {
                     <Wordmark className="h-8 sm:h-9" />
                     <div className="flex items-center gap-1">
                         <Link
-                            href="/extract"
+                            href="/redact"
                             className="rounded-lg px-3 py-1.5 text-sm font-semibold text-tertiary transition hover:bg-secondary hover:text-secondary"
                         >
-                            Extract
+                            Redact
                         </Link>
                         <Link
                             href="/blog"
@@ -178,19 +195,19 @@ export function Landing({ latestGuides = [] }: { latestGuides?: GuideLink[] }) {
                     </div>
                 </div>
 
-                <section className="mt-14 w-full rounded-2xl border border-secondary p-6 sm:p-8">
+                <section className="mt-14 w-full">
                     <h2 className="text-sm font-semibold tracking-wide text-quaternary uppercase">Also here</h2>
-                    <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                            <h3 className="text-lg font-semibold text-primary">Turn PDFs into data, locally</h3>
-                            <p className="mt-1 max-w-xl text-sm text-tertiary">
-                                Pull out text and tables as CSV, JSON or Markdown, run OCR on scanned pages in this browser, and find and truly remove the
-                                personal data hiding in a document.
-                            </p>
-                        </div>
-                        <Button href="/extract" size="lg" color="secondary" className="shrink-0">
-                            Open the extractor
-                        </Button>
+                    <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                        {TOOLS.map((tool) => (
+                            <div key={tool.href} className="flex flex-col rounded-2xl border border-secondary p-6">
+                                <tool.icon className="size-6 text-fg-brand-primary" />
+                                <h3 className="mt-3 text-lg font-semibold text-primary">{tool.title}</h3>
+                                <p className="mt-1 flex-1 text-sm text-tertiary">{tool.body}</p>
+                                <Button href={tool.href} size="md" color="secondary" className="mt-4 self-start">
+                                    {tool.cta}
+                                </Button>
+                            </div>
+                        ))}
                     </div>
                 </section>
 
